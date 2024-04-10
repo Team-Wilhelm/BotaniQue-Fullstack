@@ -1,6 +1,21 @@
 ﻿services:
+  botanique_db:
+    image: postgres:14
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: botanique
+    ports:
+      - 5432:5432  
   api:
     image: api
     build:
       context: .
       dockerfile: api/Dockerfile
+    ports:
+      - 8080:80
+    depends_on:
+      - botanique_db
+        
+        
