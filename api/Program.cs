@@ -1,34 +1,56 @@
+using System.Reflection;
+using Fleck;
 using Infrastructure;
+using lib;
 using Microsoft.EntityFrameworkCore;
 
-var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-// Use PostgreSQL with EF Core for database management
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+public static class Startup
 {
-    options.UseNpgsql(connectionString ?? throw new Exception("Connection string cannot be null"), b => b.MigrationsAssembly("Vital"));
-});
+    public static void Main(string[] args)
+    {
+        var app = StartApi(args);
+        app.Run();
+    }
+    
+    public static WebApplication StartApi(string[] args)
+    {
+        var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+        // TODO: builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
 
-var app = builder.Build();
+        // Add services to the container.
+        var connectionString = builder.Configuration.GetConnectionString("BotaniqueDb");
+        builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        {
+            connectionString ??= Environment.GetEnvironmentVariable("DefaultConnection");
+            options.UseNpgsql(connectionString ?? throw new Exception("Connection string cannot be null"),
+                b => b.MigrationsAssembly("Vital"));
+        });
+        
+        var services = builder.FindAndInjectClientEventHandlers(Assembly.GetExecutingAssembly());
+        var app = builder.Build();
+        builder.WebHost.UseUrls("http://*:9999");
+        
+        var port = Environment.GetEnvironmentVariable("PORT") ?? "8181";
+        var wsServer = new WebSocketServer($"ws://0.0.0.0:{port}");
+        
+        wsServer.Start(socket =>
+        {
+            socket.OnOpen = () => Console.WriteLine("Open!");
+            socket.OnClose = () => Console.WriteLine("Close!");
+            socket.OnMessage =  async message =>
+            {
+                try
+                {
+                    await app.InvokeClientEventHandler(services, socket, message);
+                }
+                catch (Exception e)
+                {
+                    // e.Handle(socket);
+                }
+            };
+        });
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
+        return app;
+    }
 }
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
