@@ -12,30 +12,30 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Collection> Collections { get; init; }
     public DbSet<ConditionsLog> ConditionsLogs { get; init; }
     public DbSet<Requirements> Requirements { get; init; }
-    
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>()
             .HasKey(e => e.UserEmail);
-        
+
         modelBuilder.Entity<User>()
-            .HasMany<Collection>(e => e.Collections)
+            .HasMany(e => e.Collections)
             .WithOne()
             .HasForeignKey(e => e.UserEmail);
-        
+
         modelBuilder.Entity<Collection>()
-            .HasMany<Plant>(e => e.Plants)
+            .HasMany(e => e.Plants)
             .WithOne()
             .HasForeignKey(e => e.CollectionId);
-        
+
         modelBuilder.Entity<Plant>()
-            .HasMany<ConditionsLog>(e => e.ConditionsLogs)
+            .HasMany(e => e.ConditionsLogs)
             .WithOne()
             .HasForeignKey(e => e.PlantId);
 
         modelBuilder.Entity<Requirements>()
             .HasKey(e => e.ConditionsId);
-        
+
         base.OnModelCreating(modelBuilder);
     }
 }

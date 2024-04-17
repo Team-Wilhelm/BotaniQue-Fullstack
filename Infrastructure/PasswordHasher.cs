@@ -10,9 +10,9 @@ public static class PasswordHasher
      */
     public static List<byte[]> HashPassword(string password)
     {
-        byte[] salt = RandomNumberGenerator.GetBytes(128 / 8); // divide by 8 to convert bits to bytes
-        byte[] hashed = SHA512.HashData(salt.Concat(Encoding.UTF8.GetBytes(password)).ToArray());
-        return new List<byte[]>()
+        var salt = RandomNumberGenerator.GetBytes(128 / 8); // divide by 8 to convert bits to bytes
+        var hashed = SHA512.HashData(salt.Concat(Encoding.UTF8.GetBytes(password)).ToArray());
+        return new List<byte[]>
         {
             salt,
             hashed

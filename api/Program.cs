@@ -7,9 +7,8 @@ using Infrastructure;
 using Infrastructure.Repositories;
 using lib;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
-using Shared.Dtos;
-using Shared.Models.Identity;
+using Serilog;
+using Shared.Dtos.FromClient;
 
 namespace api;
 
@@ -20,11 +19,16 @@ public static class Startup
         var app = await StartApi(args);
         await app.RunAsync();
     }
-    
+
     public static async Task<WebApplication> StartApi(string[] args)
     {
+        Log.Logger = new LoggerConfiguration()
+            .WriteTo
+            .Console(outputTemplate: "\n{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level}] {Message}{NewLine}{Exception}\n")
+            .CreateLogger();
+
         var builder = WebApplication.CreateBuilder(args);
-        
+
         var connectionString = builder.Configuration.GetConnectionString("BotaniqueDb");
         builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
         {
@@ -34,13 +38,15 @@ public static class Startup
 
         builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JWT"));
         builder.Services.Configure<MqttOptions>(builder.Configuration.GetSection("MQTT"));
+        builder.Services.AddSingleton<JwtService>();
         builder.Services.AddSingleton<UserRepository>();
+        builder.Services.AddSingleton<UserService>();
         builder.Services.AddSingleton<MqttSubscriberService>();
         // TODO: add repositories
-        
+
         var services = builder.FindAndInjectClientEventHandlers(Assembly.GetExecutingAssembly());
         var app = builder.Build();
-        
+
         if (args.Contains("--db-init"))
         {
             var scope = app.Services.CreateScope();
@@ -48,7 +54,7 @@ public static class Startup
             await db.Database.EnsureDeletedAsync();
             await db.Database.EnsureCreatedAsync();
             await db.Database.MigrateAsync();
-            
+
             var userRepository = scope.ServiceProvider.GetRequiredService<UserRepository>();
             await userRepository.CreateUser(new RegisterUserDto
             {
@@ -57,18 +63,19 @@ public static class Startup
                 Username = "bob"
             });
         }
-        
+
         builder.WebHost.UseUrls("http://*:9999");
-        
+
         var port = Environment.GetEnvironmentVariable("PORT") ?? "8181";
         var wsServer = new WebSocketServer($"ws://0.0.0.0:{port}");
-        
+
         wsServer.Start(socket =>
         {
             socket.OnOpen = () => Console.WriteLine("Open!");
             socket.OnClose = () => Console.WriteLine("Close!");
-            socket.OnMessage =  async message =>
+            socket.OnMessage = async message =>
             {
+                Log.Information("Received message: {message}", message);
                 try
                 {
                     await app.InvokeClientEventHandler(services, socket, message);

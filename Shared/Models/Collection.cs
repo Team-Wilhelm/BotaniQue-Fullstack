@@ -1,6 +1,3 @@
-using System.ComponentModel.DataAnnotations.Schema;
-using Shared.Models.Identity;
-
 namespace Shared.Models;
 
 public class Collection

@@ -8,20 +8,17 @@ namespace Core.Services;
 public class MqttSubscriberService
 {
     private readonly IOptions<MqttOptions> _options;
-    
+
     public MqttSubscriberService(IOptions<MqttOptions> options)
     {
         _options = options;
-        
+
         if (string.IsNullOrEmpty(_options.Value.Username) || _options.Value.Username == "FILL_ME_IN")
-        {
             throw new Exception("MQTT username not set in appsettings.json");
-        }
     }
-    
+
     public async Task SubscribeAsync()
     {
-        
         /*
          * This sample subscribes to a topic and processes the received message.
          */
@@ -48,10 +45,7 @@ public class MqttSubscriberService
 
         var mqttSubscribeOptions = mqttFactory.CreateSubscribeOptionsBuilder()
             .WithTopicFilter(
-                f =>
-                {
-                    f.WithTopic(_options.Value.Topic);
-                })
+                f => { f.WithTopic(_options.Value.Topic); })
             .Build();
 
         await mqttClient.SubscribeAsync(mqttSubscribeOptions, CancellationToken.None);

@@ -7,7 +7,7 @@
       POSTGRES_PASSWORD: password
       POSTGRES_DB: botanique
     ports:
-      - 5432:5432  
+      - 5432:5432
   api:
     image: api
     build:
