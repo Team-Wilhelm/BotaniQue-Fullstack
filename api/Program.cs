@@ -4,9 +4,11 @@ using Core.Options;
 using Core.Services;
 using Fleck;
 using Infrastructure;
+using Infrastructure.Repositories;
 using lib;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
+using Shared.Dtos;
 using Shared.Models.Identity;
 
 namespace api;
@@ -24,7 +26,7 @@ public static class Startup
         var builder = WebApplication.CreateBuilder(args);
         
         var connectionString = builder.Configuration.GetConnectionString("BotaniqueDb");
-        builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
         {
             connectionString ??= Environment.GetEnvironmentVariable("BotaniqueDb");
             options.UseNpgsql(connectionString ?? throw new Exception("Connection string cannot be null"));
@@ -32,6 +34,7 @@ public static class Startup
 
         builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JWT"));
         builder.Services.Configure<MqttOptions>(builder.Configuration.GetSection("MQTT"));
+        builder.Services.AddSingleton<UserRepository>();
         builder.Services.AddSingleton<MqttSubscriberService>();
         // TODO: add repositories
         
@@ -41,11 +44,18 @@ public static class Startup
         if (args.Contains("--db-init"))
         {
             var scope = app.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var db = app.Services.GetRequiredService<IDbContextFactory<ApplicationDbContext>>().CreateDbContext();
             await db.Database.EnsureDeletedAsync();
             await db.Database.EnsureCreatedAsync();
             await db.Database.MigrateAsync();
-            // await db.SeedData(guid);
+            
+            var userRepository = scope.ServiceProvider.GetRequiredService<UserRepository>();
+            await userRepository.CreateUser(new RegisterUserDto
+            {
+                Email = "bob@app.com",
+                Password = "password",
+                Username = "bob"
+            });
         }
         
         builder.WebHost.UseUrls("http://*:9999");
