@@ -23,8 +23,8 @@ public class UserRepository(IDbContextFactory<ApplicationDbContext> dbContextFac
         {
             UserEmail = registerUserDto.Email,
             UserName = registerUserDto.Username,
-            PasswordHash = passwordHashAndSalt[0],
-            PasswordSalt = passwordHashAndSalt[1]
+            PasswordHash = passwordHashAndSalt[1],
+            PasswordSalt = passwordHashAndSalt[0]
         };
 
         await context.Users.AddAsync(user);
@@ -37,8 +37,8 @@ public class UserRepository(IDbContextFactory<ApplicationDbContext> dbContextFac
         await using var context = await dbContextFactory.CreateDbContextAsync();
         var user = await context.Users.FirstOrDefaultAsync(u => u.UserEmail == loginDto.Email);
 
-        if (user == null ||
-            user.PasswordHash != PasswordHasher.HashPassword(loginDto.Password, user.PasswordSalt)) return null;
+        if (user == null) return null;
+        if (!user.PasswordHash.SequenceEqual(PasswordHasher.HashPassword(loginDto.Password, user.PasswordSalt))) return null;
 
         return user;
     }

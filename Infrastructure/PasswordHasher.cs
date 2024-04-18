@@ -6,7 +6,7 @@ namespace Infrastructure;
 public static class PasswordHasher
 {
     /**
-     * Hashes a password and returns a list of two strings: the salt and the hashed password.
+     * Hashes a password and returns a list of two byte arrays: the salt and the hashed password.
      */
     public static List<byte[]> HashPassword(string password)
     {
