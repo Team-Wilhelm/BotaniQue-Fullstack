@@ -1,5 +1,7 @@
 using System.Reflection;
 using api.Options;
+using AsyncApi.Net.Generator;
+using AsyncApi.Net.Generator.AsyncApiSchema.v2;
 using Core.Options;
 using Core.Services;
 using Fleck;
@@ -7,6 +9,7 @@ using Infrastructure;
 using Infrastructure.Repositories;
 using lib;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using Serilog;
 using Shared.Dtos.FromClient;
 
@@ -43,9 +46,18 @@ public static class Startup
         builder.Services.AddSingleton<UserService>();
         builder.Services.AddSingleton<MqttSubscriberService>();
         // TODO: add repositories
+        
+        builder.Services.AddAsyncApiSchemaGeneration(o =>
+        {
+            o.AssemblyMarkerTypes = new[] { typeof(BaseDto) }; // add assemply marker
+            o.AsyncApi = new AsyncApiDocument { Info = new Info { Title = "BotaniQue" }};
+        });
 
         var services = builder.FindAndInjectClientEventHandlers(Assembly.GetExecutingAssembly());
         var app = builder.Build();
+        
+        app.MapAsyncApiDocuments();
+        app.MapAsyncApiUi();
 
         if (args.Contains("--db-init"))
         {
@@ -64,7 +76,7 @@ public static class Startup
             });
         }
 
-        builder.WebHost.UseUrls("http://*:9999");
+        // builder.WebHost.UseUrls("http://*:9999");
 
         var port = Environment.GetEnvironmentVariable("PORT") ?? "8181";
         var wsServer = new WebSocketServer($"ws://0.0.0.0:{port}");
@@ -82,7 +94,7 @@ public static class Startup
                 }
                 catch (Exception e)
                 {
-                    // e.Handle(socket);
+                    e.Handle(socket, message);
                 }
             };
         });

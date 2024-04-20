@@ -1,8 +1,10 @@
+using System.Security.Authentication;
 using api.Extensions;
 using Core.Services;
 using Fleck;
 using lib;
 using Shared.Dtos.FromClient;
+using Shared.Models.Exceptions;
 
 namespace api.Events;
 
@@ -23,8 +25,7 @@ public class ClientWantsToLogIn(UserService userService) : BaseEventHandler<Clie
         var jwt = await userService.Login(dto.LoginDto);
         if (jwt == null)
         {
-            await socket.Send("Wrong credentials dumbass");
-            return;
+            throw new InvalidCredentialsException();
         }
 
         socket.SendDto(new ServerAuthenticatesUser { Jwt = jwt });
