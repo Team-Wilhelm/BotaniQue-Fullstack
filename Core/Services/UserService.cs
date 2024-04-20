@@ -1,5 +1,6 @@
 using Infrastructure.Repositories;
 using Shared.Dtos.FromClient;
+using Shared.Models.Exceptions;
 using Shared.Models.Identity;
 
 namespace Core.Services;
@@ -8,6 +9,9 @@ public class UserService(UserRepository userRepository, JwtService jwtService)
 {
     public async Task<User> CreateUser(RegisterUserDto registerUserDto)
     {
+        var user = await userRepository.GetUserByEmail(registerUserDto.Email);
+        if (user != null) throw new UserAlreadyExistsException();
+       
         return await userRepository.CreateUser(registerUserDto);
     }
 
