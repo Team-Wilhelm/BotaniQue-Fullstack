@@ -14,7 +14,6 @@ public class UserRepository(IDbContextFactory<ApplicationDbContext> dbContextFac
     public async Task<User> CreateUser(RegisterUserDto registerUserDto)
     {
         await using var context = await dbContextFactory.CreateDbContextAsync();
-        Console.WriteLine("Creating user");
 
         // Hash password
         var passwordHashAndSalt = PasswordHasher.HashPassword(registerUserDto.Password);
@@ -38,7 +37,8 @@ public class UserRepository(IDbContextFactory<ApplicationDbContext> dbContextFac
         var user = await context.Users.FirstOrDefaultAsync(u => u.UserEmail == loginDto.Email);
 
         if (user == null) return null;
-        if (!user.PasswordHash.SequenceEqual(PasswordHasher.HashPassword(loginDto.Password, user.PasswordSalt))) return null;
+        if (!user.PasswordHash.SequenceEqual(PasswordHasher.HashPassword(loginDto.Password, user.PasswordSalt)))
+            return null;
 
         return user;
     }

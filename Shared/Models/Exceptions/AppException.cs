@@ -11,5 +11,6 @@ public abstract class AppException : Exception
     }
 
     protected AppException()
-    {}
+    {
+    }
 }

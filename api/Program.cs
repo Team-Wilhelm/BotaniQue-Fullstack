@@ -9,7 +9,6 @@ using Infrastructure;
 using Infrastructure.Repositories;
 using lib;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
 using Serilog;
 using Shared.Dtos.FromClient;
 
@@ -41,21 +40,22 @@ public static class Startup
 
         builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JWT"));
         builder.Services.Configure<MqttOptions>(builder.Configuration.GetSection("MQTT"));
+        builder.Services.AddSingleton<WebSocketConnectionService>();
         builder.Services.AddSingleton<JwtService>();
         builder.Services.AddSingleton<UserRepository>();
         builder.Services.AddSingleton<UserService>();
         builder.Services.AddSingleton<MqttSubscriberService>();
         // TODO: add repositories
-        
+
         builder.Services.AddAsyncApiSchemaGeneration(o =>
         {
             o.AssemblyMarkerTypes = new[] { typeof(BaseDto) }; // add assemply marker
-            o.AsyncApi = new AsyncApiDocument { Info = new Info { Title = "BotaniQue" }};
+            o.AsyncApi = new AsyncApiDocument { Info = new Info { Title = "BotaniQue" } };
         });
 
         var services = builder.FindAndInjectClientEventHandlers(Assembly.GetExecutingAssembly());
         var app = builder.Build();
-        
+
         app.MapAsyncApiDocuments();
         app.MapAsyncApiUi();
 
@@ -83,8 +83,8 @@ public static class Startup
 
         wsServer.Start(socket =>
         {
-            socket.OnOpen = () => Console.WriteLine("Open!");
-            socket.OnClose = () => Console.WriteLine("Close!");
+            socket.OnOpen = () => app.Services.GetRequiredService<WebSocketConnectionService>().AddConnection(socket);
+            socket.OnClose = () => app.Services.GetRequiredService<WebSocketConnectionService>().RemoveConnection(socket);
             socket.OnMessage = async message =>
             {
                 Log.Information("Received message: {message}", message);

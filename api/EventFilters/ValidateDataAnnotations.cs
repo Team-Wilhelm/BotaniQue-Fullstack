@@ -2,6 +2,7 @@ using System.Collections;
 using System.ComponentModel.DataAnnotations;
 using Fleck;
 using lib;
+using Shared.Models.Exceptions;
 
 namespace api.EventFilters;
 
@@ -18,7 +19,14 @@ public class ValidateDataAnnotations : BaseEventFilter
         ArgumentNullException.ThrowIfNull(obj);
 
         var context = new ValidationContext(obj);
-        Validator.ValidateObject(obj, context, true);
+        try
+        {
+            Validator.ValidateObject(obj, context, true);
+        }
+        catch (ValidationException e)
+        {
+            throw new ModelValidationException(e.Message);
+        }
 
         foreach (var property in obj.GetType().GetProperties())
         {

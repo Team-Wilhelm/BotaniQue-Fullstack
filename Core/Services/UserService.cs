@@ -16,4 +16,9 @@ public class UserService(UserRepository userRepository, JwtService jwtService)
         var user = await userRepository.Login(loginDto);
         return user == null ? null : jwtService.IssueJwt(user);
     }
+
+    public async Task<User?> GetUserByEmail(string email)
+    {
+        return await userRepository.GetUserByEmail(email);
+    }
 }
