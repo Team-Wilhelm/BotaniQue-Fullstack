@@ -6,15 +6,15 @@ namespace Infrastructure.Repositories;
 
 public class UserRepository(IDbContextFactory<ApplicationDbContext> dbContextFactory)
 {
-    public async Task<User> GetUserByEmail(string email)
+    public async Task<User?> GetUserByEmail(string email)
     {
-        throw new NotImplementedException();
+        await using var context = await dbContextFactory.CreateDbContextAsync();
+        return await context.Users.FirstOrDefaultAsync(u => u.UserEmail == email);
     }
 
     public async Task<User> CreateUser(RegisterUserDto registerUserDto)
     {
         await using var context = await dbContextFactory.CreateDbContextAsync();
-        Console.WriteLine("Creating user");
 
         // Hash password
         var passwordHashAndSalt = PasswordHasher.HashPassword(registerUserDto.Password);
@@ -38,7 +38,8 @@ public class UserRepository(IDbContextFactory<ApplicationDbContext> dbContextFac
         var user = await context.Users.FirstOrDefaultAsync(u => u.UserEmail == loginDto.Email);
 
         if (user == null) return null;
-        if (!user.PasswordHash.SequenceEqual(PasswordHasher.HashPassword(loginDto.Password, user.PasswordSalt))) return null;
+        if (!user.PasswordHash.SequenceEqual(PasswordHasher.HashPassword(loginDto.Password, user.PasswordSalt)))
+            return null;
 
         return user;
     }

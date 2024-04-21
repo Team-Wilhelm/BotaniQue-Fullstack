@@ -1,5 +1,7 @@
 using System.Reflection;
 using api.Options;
+using AsyncApi.Net.Generator;
+using AsyncApi.Net.Generator.AsyncApiSchema.v2;
 using Core.Options;
 using Core.Services;
 using Fleck;
@@ -38,14 +40,24 @@ public static class Startup
 
         builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JWT"));
         builder.Services.Configure<MqttOptions>(builder.Configuration.GetSection("MQTT"));
+        builder.Services.AddSingleton<WebSocketConnectionService>();
         builder.Services.AddSingleton<JwtService>();
         builder.Services.AddSingleton<UserRepository>();
         builder.Services.AddSingleton<UserService>();
         builder.Services.AddSingleton<MqttSubscriberService>();
         // TODO: add repositories
 
+        builder.Services.AddAsyncApiSchemaGeneration(o =>
+        {
+            o.AssemblyMarkerTypes = new[] { typeof(BaseDto) }; // add assemply marker
+            o.AsyncApi = new AsyncApiDocument { Info = new Info { Title = "BotaniQue" } };
+        });
+
         var services = builder.FindAndInjectClientEventHandlers(Assembly.GetExecutingAssembly());
         var app = builder.Build();
+
+        app.MapAsyncApiDocuments();
+        app.MapAsyncApiUi();
 
         if (args.Contains("--db-init"))
         {
@@ -64,15 +76,15 @@ public static class Startup
             });
         }
 
-        builder.WebHost.UseUrls("http://*:9999");
+        // builder.WebHost.UseUrls("http://*:9999");
 
         var port = Environment.GetEnvironmentVariable("PORT") ?? "8181";
         var wsServer = new WebSocketServer($"ws://0.0.0.0:{port}");
 
         wsServer.Start(socket =>
         {
-            socket.OnOpen = () => Console.WriteLine("Open!");
-            socket.OnClose = () => Console.WriteLine("Close!");
+            socket.OnOpen = () => app.Services.GetRequiredService<WebSocketConnectionService>().AddConnection(socket);
+            socket.OnClose = () => app.Services.GetRequiredService<WebSocketConnectionService>().RemoveConnection(socket);
             socket.OnMessage = async message =>
             {
                 Log.Information("Received message: {message}", message);
@@ -82,7 +94,7 @@ public static class Startup
                 }
                 catch (Exception e)
                 {
-                    // e.Handle(socket);
+                    e.Handle(socket, message);
                 }
             };
         });
