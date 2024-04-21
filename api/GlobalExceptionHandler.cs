@@ -19,6 +19,7 @@ public static class GlobalExceptionHandler
                 InvalidCredentialsException => new ServerRejectsWrongCredentials { Error = ex.Message },
                 UserAlreadyExistsException => new ServerRespondsUserAlreadyExists { Error = ex.Message },
                 ModelValidationException => new ServerRespondsValidationError { Error = ex. Message },
+                NotFoundException => new ServerRespondsNotFound { Error = ex.Message },
                 _ => new ServerSendsErrorMessage { Error = message ?? ex.Message }
             };
         else
