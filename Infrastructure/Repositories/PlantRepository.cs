@@ -19,7 +19,11 @@ public class PlantRepository (IDbContextFactory<ApplicationDbContext> dbContextF
     public async Task<Plant?> GetPlantById(Guid id)
     {
         await using var context = await dbContextFactory.CreateDbContextAsync();
-        return await context.Plants.FirstOrDefaultAsync(p => p.PlantId == id);
+        var plant = await context.Plants
+            .Include(plant => plant.Requirements)
+            .FirstOrDefaultAsync(p => p.PlantId == id);
+        
+        return plant;
     }
     
     public async Task<List<Plant>?> GetPlantsForUser(string userEmail, int pageNumber, int pageSize)
@@ -27,6 +31,7 @@ public class PlantRepository (IDbContextFactory<ApplicationDbContext> dbContextF
         //TODO should we keep track of logged in user instead of passing in email?
         await using var context = await dbContextFactory.CreateDbContextAsync();
         return await context.Plants
+            .Include(plant => plant.Requirements)
             .Where(p => p.UserEmail == userEmail)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)

@@ -7,7 +7,7 @@ namespace Core.Services;
 
 public class RequirementService(RequirementsRepository requirementsRepository)
 {
-    public async Task<Requirements?> GetRequirements(Guid plantId)
+    public async Task<Requirements> GetRequirements(Guid plantId)
     {
         var requirements = await requirementsRepository.GetRequirements(plantId); 
         if (requirements is null) throw new NotFoundException("Requirements not found");
