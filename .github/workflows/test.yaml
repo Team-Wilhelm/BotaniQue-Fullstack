@@ -57,7 +57,7 @@ jobs:
       - name: Populate database
         env:
           BotaniqueDb: Host=localhost;Database=TestDatabase;Username=testuser;Password=password
-        run: timeout 120 cd api && dotnet run --db-init  
+        run: timeout 120 dotnet run --project api --db-init  
 
       - name: Run tests
         env:
