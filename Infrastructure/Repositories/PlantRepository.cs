@@ -26,7 +26,7 @@ public class PlantRepository (IDbContextFactory<ApplicationDbContext> dbContextF
         return plant;
     }
     
-    public async Task<List<Plant>?> GetPlantsForUser(string userEmail, int pageNumber, int pageSize)
+    public async Task<List<Plant>> GetPlantsForUser(string userEmail, int pageNumber, int pageSize)
     {
         //TODO should we keep track of logged in user instead of passing in email?
         await using var context = await dbContextFactory.CreateDbContextAsync();
@@ -46,11 +46,9 @@ public class PlantRepository (IDbContextFactory<ApplicationDbContext> dbContextF
         return plant;
     }
     
-    public async Task DeletePlant(Guid id)
+    public async Task DeletePlant(Plant plant)
     {
         await using var context = await dbContextFactory.CreateDbContextAsync();
-        var plant = await context.Plants.FirstOrDefaultAsync(p => p.PlantId == id);
-        if (plant == null) return;
         context.Plants.Remove(plant);
         await context.SaveChangesAsync();
     }

@@ -1,4 +1,5 @@
 using Fleck;
+using Shared.Models.Exceptions;
 using Shared.Models.Identity;
 
 namespace api;
@@ -36,8 +37,12 @@ public class WebSocketConnectionService
         _connectedClients.Remove(clientId);
     }
 
-    public WsWithMetadata GetClient(Guid clientId)
+    public User GetUser(IWebSocketConnection connection)
     {
-        return _connectedClients[clientId];
+        var clientId = connection.ConnectionInfo.Id;
+        var user = _connectedClients[clientId].User;
+        
+        if (user is null) throw new NotAuthenticatedException();
+        return user;
     }
 }
