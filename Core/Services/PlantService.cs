@@ -3,11 +3,15 @@ using Shared.Dtos.FromClient.Plant;
 using Shared.Dtos.Plant;
 using Shared.Models;
 using Shared.Models.Exceptions;
+using Shared.Models.Information;
 
 namespace Core.Services;
 
 public class PlantService (PlantRepository plantRepository, RequirementService requirementService)
 {
+    private const string DefaultImageUrl =
+        "https://www.creativefabrica.com/wp-content/uploads/2022/01/20/Animated-Plant-Graphics-23785833-1.jpg";
+    
     public async Task<Plant> CreatePlant(CreatePlantDto createPlantDto)
     {
         if (string.IsNullOrEmpty(createPlantDto.Nickname))
@@ -22,7 +26,7 @@ public class PlantService (PlantRepository plantRepository, RequirementService r
             UserEmail = createPlantDto.UserEmail,
             // CollectionId = Guid.Empty, // TODO: fix when collections are implemented
             Nickname = createPlantDto.Nickname,
-            ImageUrl = createPlantDto.ImageUrl,
+            ImageUrl = createPlantDto.ImageUrl ?? DefaultImageUrl,
         };
         
         await plantRepository.CreatePlant(plant);
@@ -53,15 +57,23 @@ public class PlantService (PlantRepository plantRepository, RequirementService r
     {
         var plant = await plantRepository.GetPlantById(updatePlantDto.PlantId);
         if (plant == null) throw new NotFoundException("Plant not found");
+
+        // Update plant requirements if they are provided
+        var requirements = plant.Requirements;
+        if (updatePlantDto.UpdateRequirementDto is not null)
+        {
+            requirements = await requirementService.UpdateRequirements(updatePlantDto.UpdateRequirementDto, plant.PlantId);
+        }
         
+        // Update the plant
         plant = new Plant
         {
             PlantId = updatePlantDto.PlantId,
             UserEmail = plant.UserEmail,
             CollectionId = updatePlantDto.CollectionId,
             Nickname = updatePlantDto.Nickname,
-            ImageUrl = updatePlantDto.ImageUrl,
-            Requirements = plant.Requirements,
+            ImageUrl = updatePlantDto.ImageUrl ?? DefaultImageUrl,
+            Requirements = requirements,
             ConditionsLogs = plant.ConditionsLogs
         };
         return await plantRepository.UpdatePlant(plant);

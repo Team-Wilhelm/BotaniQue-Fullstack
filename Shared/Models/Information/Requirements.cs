@@ -18,10 +18,10 @@ public class Requirements : Conditions
         Humidity = createRequirementsDto.Humidity;
     }
     
-    public Requirements(UpdateRequirementDto updateRequirementDto)
+    public Requirements(UpdateRequirementDto updateRequirementDto, Guid plantId)
     {
         ConditionsId = updateRequirementDto.ConditionsId;
-        PlantId = updateRequirementDto.PlantId;
+        PlantId = plantId;
         SoilMoisture = updateRequirementDto.SoilMoisture;
         LightLevel = updateRequirementDto.LightLevel;
         Temperature = updateRequirementDto.Temperature;

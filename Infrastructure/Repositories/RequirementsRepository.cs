@@ -5,10 +5,10 @@ namespace Infrastructure.Repositories;
 
 public class RequirementsRepository(IDbContextFactory<ApplicationDbContext> dbContextFactory)
 {
-    public async Task<Requirements?> GetRequirements(Guid plantId)
+    public async Task<Requirements?> GetRequirements(Guid requirementsId)
     {
         await using var context = await dbContextFactory.CreateDbContextAsync();
-        return await context.Requirements.FirstOrDefaultAsync(r => r.PlantId == plantId);
+        return await context.Requirements.FirstOrDefaultAsync(r => r.ConditionsId == requirementsId);
     }
     
     public async Task<Requirements> CreateRequirements(Requirements requirements)

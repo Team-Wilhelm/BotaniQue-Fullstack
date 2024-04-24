@@ -20,12 +20,13 @@ public class RequirementService(RequirementsRepository requirementsRepository)
         return await requirementsRepository.CreateRequirements(requirements);
     }
     
-    public async Task<Requirements?> UpdateRequirements(UpdateRequirementDto updateRequirementDto)
+    public async Task<Requirements?> UpdateRequirements(UpdateRequirementDto updateRequirementDto, Guid plantId)
     {
-        var requirements = await requirementsRepository.GetRequirements(updateRequirementDto.PlantId);
+        var requirements = await requirementsRepository.GetRequirements(updateRequirementDto.ConditionsId);
         if (requirements is null) throw new NotFoundException("Requirements not found");
+        if (requirements.PlantId != plantId) throw new NoAccessException("You don't have access to this plant");
         
-        requirements = new Requirements(updateRequirementDto);
+        requirements = new Requirements(updateRequirementDto, plantId);
         return await requirementsRepository.UpdateRequirements(requirements);
     }
     
