@@ -2,6 +2,9 @@ on:
   pull_request:
     branches:
       - main
+  push:
+    branches:
+      - tests
   workflow_dispatch:
     
 jobs:
@@ -55,12 +58,12 @@ jobs:
         run: pwd && ls    
         
       - name: Populate database
-        run: timeout 30 dotnet run --db-init --project api 
+        run: timeout 120 dotnet run --db-init --project api 
 
       - name: Run tests
         env:
           BotaniqueDb: Host=localhost;Database=TestDatabase;Username=testuser;Password=password
-        run: cd Tests && dotnet test
+        run: cd Tests && dotnet test --no-build
 
 
 
