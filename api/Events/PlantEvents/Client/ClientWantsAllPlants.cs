@@ -17,12 +17,12 @@ public class ClientWantsAllPlantsDto: BaseDtoWithJwt
 }
 
 [ValidateDataAnnotations]
-public class ClientWAntsAllPlants(PlantService plantService): BaseEventHandler<ClientWantsAllPlantsDto>
+public class ClientWantsAllPlants(PlantService plantService): BaseEventHandler<ClientWantsAllPlantsDto>
 {
     public override async Task Handle(ClientWantsAllPlantsDto dto, IWebSocketConnection socket)
     {
         var plants = await plantService.GetPlantsForUser(dto.UserEmail, dto.PageNumber, dto.PageSize);
-        var serverSendsAllPlantsDto = new ServerSendsAllPlantsDto
+        var serverSendsAllPlantsDto = new ServerSendsAllPlants
         {
             Plants = plants
         };

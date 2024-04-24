@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text.Json;
+using api.Events.Auth.Client;
 using api.Options;
 using AsyncApi.Net.Generator;
 using AsyncApi.Net.Generator.AsyncApiSchema.v2;
@@ -19,6 +20,13 @@ namespace api;
 
 public static class Startup
 {
+    private static readonly List<string> _publicEvents =
+    [
+        nameof(ClientWantsToLogIn),
+        nameof(ClientWantsToLogOut),
+        nameof(ClientWantsToSignUp)
+    ];
+    
     public static async Task Main(string[] args)
     {
         var app = await StartApi(args);
@@ -98,9 +106,15 @@ public static class Startup
                 try
                 {
                     // Check if the message contains a JWT token and if it is valid
-                    BaseDtoWithJwt? dto = JsonSerializer.Deserialize<BaseDtoWithJwt>(message, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
-                    if (dto?.Jwt != null)
+                    var dto = JsonSerializer.Deserialize<BaseDtoWithJwt>(message, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    if (dto is not null && _publicEvents.Contains(dto.eventType) == false)
                     {
+                        Console.WriteLine("Checking JWT token");
+                        if (dto.Jwt is null)
+                        {
+                            throw new NotAuthenticatedException("JWT token is missing. Please log in.");
+                        }
+                        
                         var jwtService = app.Services.GetRequiredService<JwtService>();
                         var jwtValid = jwtService.IsJwtTokenValid(dto.Jwt);
                         if (!jwtValid)

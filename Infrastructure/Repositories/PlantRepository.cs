@@ -28,7 +28,6 @@ public class PlantRepository (IDbContextFactory<ApplicationDbContext> dbContextF
     
     public async Task<List<Plant>> GetPlantsForUser(string userEmail, int pageNumber, int pageSize)
     {
-        //TODO should we keep track of logged in user instead of passing in email?
         await using var context = await dbContextFactory.CreateDbContextAsync();
         return await context.Plants
             .Include(plant => plant.Requirements)

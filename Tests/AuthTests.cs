@@ -1,4 +1,3 @@
-using api;
 using api.Events.Auth.Client;
 using api.Events.Auth.Server;
 using api.Events.Global;
@@ -8,18 +7,10 @@ using Shared.Dtos.FromClient.Identity;
 
 namespace Tests;
 
-[TestFixture]
-[NonParallelizable]
-public class Tests
+public class AuthTests : TestBase
 {
-    [OneTimeSetUp]
-    public async Task Setup()
-    {
-        await Startup.StartApi(["ENVIRONMENT=Development"]);
-    }
-
     [Test]
-    public async Task Register()
+    public async Task RegisterLogInLogOut()
     {
         var ws = await new WebSocketTestClient().ConnectAsync();
         
@@ -38,6 +29,11 @@ public class Tests
         await ws.DoAndAssert(new ClientWantsToLogInDto { LoginDto = loginDto }, receivedMessages =>
         {
             return receivedMessages.Count(e => e.eventType == nameof(ServerAuthenticatesUser)) == 1;
+        });
+        
+        await ws.DoAndAssert(new ClientWantsToLogOutDto { UserEmail = registerUserDto.Email }, receivedMessages =>
+        {
+            return receivedMessages.Count(e => e.eventType == nameof(ServerLogsOutUser)) == 1;
         });
     }
 
@@ -71,7 +67,6 @@ public class Tests
     public async Task RegisterInvalidUsername()
     {
         var ws = await new WebSocketTestClient().ConnectAsync();
-
         var registerUserDto = GenerateRandomRegisterUserDto();
         registerUserDto.Username =
             "IWantToHaveTheLongestUsernameInTheUnivereseSoICanBreakThisAppIAmSoEvilHaHaHaHaIHopeThisIsMoreThan50Characters";
@@ -82,14 +77,38 @@ public class Tests
         });
     }
 
-    private RegisterUserDto GenerateRandomRegisterUserDto()
+    [Test]
+    public async Task RegisterUserAlreadyExists()
     {
-        var registerUserDto = new RegisterUserDto
+        var ws = await new WebSocketTestClient().ConnectAsync();
+        
+        var registerUserDto = GenerateRandomRegisterUserDto();
+        await ws.DoAndAssert(new ClientWantsToSignUpDto { RegisterUserDto = registerUserDto }, receivedMessages =>
         {
-            Email = $"user{Guid.NewGuid()}@app.com",
-            Password = "verySecurePassword123",
-            Username = "Vladimir"
+            return receivedMessages.Count(e => e.eventType == nameof(ServerSignsUserUp)) == 1;
+        });
+        
+        await ws.DoAndAssert(new ClientWantsToSignUpDto { RegisterUserDto = registerUserDto }, receivedMessages =>
+        {
+            return receivedMessages.Count(e => e.eventType == nameof(ServerSignsUserUp)) == 1 
+                   && receivedMessages.Count(e => e.eventType == nameof(ServerRespondsUserAlreadyExists)) == 1;
+        });
+    }
+
+    [Test]
+    public async Task LogInInvalidCredentials()
+    {
+        var ws = await new WebSocketTestClient().ConnectAsync();
+        var loginDto = new LoginDto
+        {
+            Email = "invalidEmail",
+            Password = "invalidPassword"
         };
-        return registerUserDto;
+        
+        await ws.DoAndAssert(new ClientWantsToLogInDto { LoginDto = loginDto }, receivedMessages =>
+        {
+            return receivedMessages.Count(e => e.eventType == nameof(ServerAuthenticatesUser)) == 0 
+                   && receivedMessages.Count(e => e.eventType == nameof(ServerRejectsWrongCredentials)) == 1;
+        });
     }
 }
