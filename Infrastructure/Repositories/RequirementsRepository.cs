@@ -14,9 +14,9 @@ public class RequirementsRepository(IDbContextFactory<ApplicationDbContext> dbCo
     public async Task<Requirements> CreateRequirements(Requirements requirements)
     {
         await using var context = await dbContextFactory.CreateDbContextAsync();
-        var entity = context.Requirements.Add(requirements);
+        context.Requirements.Add(requirements);
         await context.SaveChangesAsync();
-        return entity.Entity;
+        return requirements;
     }
     
     public async Task<Requirements?> UpdateRequirements(Requirements requirements)

@@ -10,6 +10,6 @@ public class Plant
 
     public string? Nickname { get; set; } // if not provided make one up
     public string ImageUrl { get; set; } = null!;
-    public Requirements Requirements { get; set; } = new();
+    public Requirements? Requirements { get; set; }
     public List<ConditionsLog> ConditionsLogs { get; set; } = new();
 }

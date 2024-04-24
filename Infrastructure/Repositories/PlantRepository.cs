@@ -33,30 +33,9 @@ public class PlantRepository (IDbContextFactory<ApplicationDbContext> dbContextF
             .ToListAsync();
     }
     
-    public async Task<Plant> UpdatePlant(UpdatePlantDto updatePlantDto)
+    public async Task<Plant> UpdatePlant(Plant plant)
     {
         await using var context = await dbContextFactory.CreateDbContextAsync();
-        var plant = await context.Plants.FirstOrDefaultAsync(p => p.PlantId == updatePlantDto.PlantId);
-        if (plant == null) throw new NotFoundException("Plant not found");
-
-        if (updatePlantDto.CollectionId.HasValue && updatePlantDto.CollectionId != plant.CollectionId)
-        {
-            plant.CollectionId = updatePlantDto.CollectionId;
-        }
-
-        if (!string.IsNullOrEmpty(updatePlantDto.Nickname) && updatePlantDto.Nickname != plant.Nickname)
-        {
-            plant.Nickname = updatePlantDto.Nickname;
-        }
-        
-        if (!string.IsNullOrEmpty(updatePlantDto.ImageUrl) && updatePlantDto.ImageUrl != plant.ImageUrl)
-        {
-            plant.ImageUrl = updatePlantDto.ImageUrl;
-        }
-        
-        //TODO change this when we implement requirements and apply correct logic
-        plant.Requirements = updatePlantDto.Requirements;
-        
         context.Plants.Update(plant);
         await context.SaveChangesAsync();
         return plant;

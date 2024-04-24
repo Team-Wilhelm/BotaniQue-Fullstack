@@ -14,23 +14,24 @@ public class PlantService (PlantRepository plantRepository, RequirementService r
         {
             createPlantDto.Nickname = GenerateRandomNickname();
         }
-
-        var plantId = Guid.NewGuid();
-        var requirementsDto = createPlantDto.CreateRequirementsDto;
-        requirementsDto.PlantId = plantId;
-        var requirements = await requirementService.CreateRequirements(requirementsDto);
-        
+         
+        // Insert plant first to get the plantId
         var plant = new Plant
         {
-            PlantId = plantId,
+            PlantId = Guid.NewGuid(),
             UserEmail = createPlantDto.UserEmail,
-            CollectionId = Guid.Empty, // TODO: fix when collections are implemented
+            // CollectionId = Guid.Empty, // TODO: fix when collections are implemented
             Nickname = createPlantDto.Nickname,
             ImageUrl = createPlantDto.ImageUrl,
-            Requirements = requirements
         };
-
+        
         await plantRepository.CreatePlant(plant);
+
+        // Create requirements for the plant to crete a link between the two
+        var requirementsDto = createPlantDto.CreateRequirementsDto;
+        requirementsDto.PlantId = plant.PlantId;
+        await requirementService.CreateRequirements(requirementsDto);
+        
         return plant;
     }
     
@@ -50,7 +51,20 @@ public class PlantService (PlantRepository plantRepository, RequirementService r
     
     public async Task<Plant> UpdatePlant(UpdatePlantDto updatePlantDto)
     {
-        return await plantRepository.UpdatePlant(updatePlantDto);
+        var plant = await plantRepository.GetPlantById(updatePlantDto.PlantId);
+        if (plant == null) throw new NotFoundException("Plant not found");
+        
+        plant = new Plant
+        {
+            PlantId = updatePlantDto.PlantId,
+            UserEmail = plant.UserEmail,
+            CollectionId = updatePlantDto.CollectionId,
+            Nickname = updatePlantDto.Nickname,
+            ImageUrl = updatePlantDto.ImageUrl,
+            Requirements = plant.Requirements,
+            ConditionsLogs = plant.ConditionsLogs
+        };
+        return await plantRepository.UpdatePlant(plant);
     }
     
     public async Task DeletePlant(Guid id)
