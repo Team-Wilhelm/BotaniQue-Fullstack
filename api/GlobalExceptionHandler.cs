@@ -20,6 +20,7 @@ public static class GlobalExceptionHandler
                 UserAlreadyExistsException => new ServerRespondsUserAlreadyExists { Error = ex.Message },
                 ModelValidationException => new ServerRespondsValidationError { Error = ex. Message },
                 NotFoundException => new ServerRespondsNotFound { Error = ex.Message },
+                NoAccessException => new ServerRespondsNotAuthorized { Error = ex.Message },
                 _ => new ServerSendsErrorMessage { Error = message ?? ex.Message }
             };
         else

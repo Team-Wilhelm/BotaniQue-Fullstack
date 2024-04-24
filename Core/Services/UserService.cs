@@ -1,5 +1,6 @@
 using Infrastructure.Repositories;
 using Shared.Dtos.FromClient;
+using Shared.Dtos.FromClient.Identity;
 using Shared.Models.Exceptions;
 using Shared.Models.Identity;
 

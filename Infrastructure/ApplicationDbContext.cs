@@ -22,6 +22,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasMany(e => e.Collections)
             .WithOne()
             .HasForeignKey(e => e.UserEmail);
+        
+        modelBuilder.Entity<User>()
+            .HasMany(e => e.Plants)
+            .WithOne()
+            .HasForeignKey(e => e.UserEmail);
 
         modelBuilder.Entity<Collection>()
             .HasMany(e => e.Plants)
@@ -32,6 +37,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasMany(e => e.ConditionsLogs)
             .WithOne()
             .HasForeignKey(e => e.PlantId);
+        
+        modelBuilder.Entity<Plant>()
+            .HasOne(e => e.Requirements)
+            .WithOne()
+            .HasForeignKey<Requirements>(e => e.PlantId);
 
         modelBuilder.Entity<Requirements>()
             .HasKey(e => e.ConditionsId);

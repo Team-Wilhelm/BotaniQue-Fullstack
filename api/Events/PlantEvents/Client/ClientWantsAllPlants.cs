@@ -9,7 +9,7 @@ using Shared.Models;
 
 namespace api.Events.PlantEvents.Client;
 
-public class ClientWantsAllPlantsDto: BaseDto
+public class ClientWantsAllPlantsDto: BaseDtoWithJwt
 {
     [Required, EmailAddress] public string UserEmail { get; set; }
     [Range(1, int.MaxValue)] public int PageNumber { get; set; }

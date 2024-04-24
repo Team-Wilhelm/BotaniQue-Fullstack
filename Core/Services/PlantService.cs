@@ -1,45 +1,85 @@
 ﻿using Infrastructure.Repositories;
+using Shared.Dtos.FromClient.Plant;
 using Shared.Dtos.Plant;
 using Shared.Models;
 using Shared.Models.Exceptions;
+using Shared.Models.Information;
 
 namespace Core.Services;
 
-public class PlantService (PlantRepository plantRepository)
+public class PlantService (PlantRepository plantRepository, RequirementService requirementService)
 {
+    private const string DefaultImageUrl =
+        "https://www.creativefabrica.com/wp-content/uploads/2022/01/20/Animated-Plant-Graphics-23785833-1.jpg";
+    
     public async Task<Plant> CreatePlant(CreatePlantDto createPlantDto)
     {
         if (string.IsNullOrEmpty(createPlantDto.Nickname))
         {
             createPlantDto.Nickname = GenerateRandomNickname();
         }
-        var plant = await plantRepository.CreatePlant(createPlantDto);
-        if (plant == null) throw new Exception("Plant not found");
+         
+        // Insert plant first to get the plantId
+        var plant = new Plant
+        {
+            PlantId = Guid.NewGuid(),
+            UserEmail = createPlantDto.UserEmail,
+            // CollectionId = Guid.Empty, // TODO: fix when collections are implemented
+            Nickname = createPlantDto.Nickname,
+            ImageUrl = createPlantDto.ImageUrl ?? DefaultImageUrl,
+        };
+        
+        await plantRepository.CreatePlant(plant);
+
+        // Create requirements for the plant to crete a link between the two
+        var requirementsDto = createPlantDto.CreateRequirementsDto;
+        requirementsDto.PlantId = plant.PlantId;
+        await requirementService.CreateRequirements(requirementsDto);
+        
         return plant;
     }
     
-    public async Task<Plant> GetPlantById(Guid id)
+    public async Task<Plant> GetPlantById(Guid id, string requesterEmail)
     {
-        var plant = await plantRepository.GetPlantById(id);
-        if (plant == null) throw new NotFoundException("Plant not found");
+        var plant = await VerifyPlantExistsAndUserHasAccess(id, requesterEmail);
         return plant;
     }
     
     public async Task<List<Plant>> GetPlantsForUser(string userEmail, int pageNumber, int pageSize)
     {
         var plants = await plantRepository.GetPlantsForUser(userEmail, pageNumber, pageSize);
-        if (plants == null) throw new NotFoundException("No plants found");
         return plants;
     }
     
-    public async Task<Plant> UpdatePlant(UpdatePlantDto updatePlantDto)
+    public async Task<Plant> UpdatePlant(UpdatePlantDto updatePlantDto, string requesterEmail)
     {
-        return await plantRepository.UpdatePlant(updatePlantDto);
+        var plant = await VerifyPlantExistsAndUserHasAccess(updatePlantDto.PlantId, requesterEmail);
+
+        // Update plant requirements if they are provided
+        var requirements = plant.Requirements;
+        if (updatePlantDto.UpdateRequirementDto is not null)
+        {
+            requirements = await requirementService.UpdateRequirements(updatePlantDto.UpdateRequirementDto, plant.PlantId);
+        }
+        
+        // Update the plant
+        plant = new Plant
+        {
+            PlantId = updatePlantDto.PlantId,
+            UserEmail = plant.UserEmail,
+            CollectionId = updatePlantDto.CollectionId,
+            Nickname = updatePlantDto.Nickname,
+            ImageUrl = updatePlantDto.ImageUrl ?? DefaultImageUrl,
+            Requirements = requirements,
+            ConditionsLogs = plant.ConditionsLogs
+        };
+        return await plantRepository.UpdatePlant(plant);
     }
     
-    public async Task DeletePlant(Guid id)
+    public async Task DeletePlant(Guid id, string requesterEmail)
     {
-        await plantRepository.DeletePlant(id);
+        var plant = await VerifyPlantExistsAndUserHasAccess(id, requesterEmail);
+        await plantRepository.DeletePlant(plant);
     }
     
     private string GenerateRandomNickname()
@@ -59,5 +99,13 @@ public class PlantService (PlantRepository plantRepository)
         var plantNickname = $"{randomHumanName} {randomPlantName}";
         
         return plantNickname;
+    }
+    
+    private async Task<Plant> VerifyPlantExistsAndUserHasAccess(Guid plantId, string requesterEmail)
+    {
+        var plant = await plantRepository.GetPlantById(plantId);
+        if (plant == null) throw new NotFoundException("Plant not found");
+        if (plant.UserEmail != requesterEmail) throw new NoAccessException("You don't have access to this plant");
+        return plant;
     }
 }

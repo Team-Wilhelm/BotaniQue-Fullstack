@@ -1,6 +1,6 @@
 ﻿using lib;
 
-namespace api.Events.PlantEvents.Server;
+namespace api.Events.Global;
 
 public class ServerConfirmsDelete: BaseDto
 {
