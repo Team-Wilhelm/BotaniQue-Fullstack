@@ -52,12 +52,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
-          
-      - name: Populate database
-        env:
-          BotaniqueDb: Host=localhost;Database=TestDatabase;Username=testuser;Password=password
-        run: timeout 120 dotnet run --project api --db-init  
+          dotnet-version: 8.0.x 
 
       - name: Run tests
         env:
