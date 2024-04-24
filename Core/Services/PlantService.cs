@@ -14,7 +14,7 @@ public class PlantService (PlantRepository plantRepository)
             createPlantDto.Nickname = GenerateRandomNickname();
         }
         var plant = await plantRepository.CreatePlant(createPlantDto);
-        if (plant == null) throw new NotFoundException("Plant not found");
+        if (plant == null) throw new Exception("Plant not found");
         return plant;
     }
     
