@@ -54,11 +54,10 @@ jobs:
         with:
           dotnet-version: 8.0.x
           
-      - name: Print working directory
-        run: pwd && ls    
-        
       - name: Populate database
-        run: timeout 120 dotnet run --db-init --project api 
+        env:
+          BotaniqueDb: Host=localhost;Database=TestDatabase;Username=testuser;Password=password
+        run: timeout 120 cd api && dotnet run --db-init  
 
       - name: Run tests
         env:
