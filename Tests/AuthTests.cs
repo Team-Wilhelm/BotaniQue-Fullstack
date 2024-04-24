@@ -107,6 +107,7 @@ public class AuthTests : TestBase
         
         await ws.DoAndAssert(new ClientWantsToLogInDto { LoginDto = loginDto }, receivedMessages =>
         {
+            receivedMessages.ForEach(e => Console.WriteLine(e.eventType));
             return receivedMessages.Count(e => e.eventType == nameof(ServerAuthenticatesUser)) == 0 
                    && receivedMessages.Count(e => e.eventType == nameof(ServerRejectsWrongCredentials)) == 1;
         });
