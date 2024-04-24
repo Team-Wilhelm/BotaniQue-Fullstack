@@ -6,7 +6,6 @@ namespace api;
 public class WsWithMetadata(IWebSocketConnection connection)
 {
     public IWebSocketConnection Connection { get; set; } = connection;
-    public bool IsAuthenticated { get; set; } = false;
     public User? User { get; set; }
 }
 
@@ -22,8 +21,13 @@ public class WebSocketConnectionService
     
     public void AuthenticateConnection(Guid clientId, User user)
     {
-        _connectedClients[clientId].IsAuthenticated = true;
         _connectedClients[clientId].User = user;
+    }
+    
+    public void RevertAuthentication(IWebSocketConnection connection)
+    {
+        var clientId = connection.ConnectionInfo.Id;
+        _connectedClients[clientId].User = null;
     }
 
     public void RemoveConnection(IWebSocketConnection connection)

@@ -1,27 +1,19 @@
 using Microsoft.EntityFrameworkCore;
+using Shared.Dtos.FromClient.Plant;
 using Shared.Dtos.Plant;
 using Shared.Models;
 using Shared.Models.Exceptions;
+using Shared.Models.Information;
 
 namespace Infrastructure.Repositories;
 
 public class PlantRepository (IDbContextFactory<ApplicationDbContext> dbContextFactory)
 {
-    public async Task<Plant?> CreatePlant(CreatePlantDto createPlantDto)
+    public async Task CreatePlant(Plant plant)
     {
-        var plant = new Plant
-        {
-            PlantId = Guid.NewGuid(),
-            UserEmail = createPlantDto.UserEmail,
-            CollectionId = createPlantDto.CollectionId,
-            Nickname = createPlantDto.Nickname,
-            ImageUrl = createPlantDto.ImageUrl,
-            Requirements = createPlantDto.Requirements
-        };
         await using var context = await dbContextFactory.CreateDbContextAsync();
         await context.Plants.AddAsync(plant);
         await context.SaveChangesAsync();
-        return plant;
     }
 
     public async Task<Plant?> GetPlantById(Guid id)

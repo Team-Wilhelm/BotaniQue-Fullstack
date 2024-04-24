@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text.Json;
 using api.Options;
 using AsyncApi.Net.Generator;
 using AsyncApi.Net.Generator.AsyncApiSchema.v2;
@@ -11,6 +12,8 @@ using lib;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Shared.Dtos.FromClient;
+using Shared.Models;
+using Shared.Models.Exceptions;
 
 namespace api;
 
@@ -44,8 +47,10 @@ public static class Startup
         builder.Services.AddSingleton<JwtService>();
         builder.Services.AddSingleton<UserRepository>();
         builder.Services.AddSingleton<PlantRepository>();
+        builder.Services.AddSingleton<RequirementsRepository>();
         builder.Services.AddSingleton<UserService>();
         builder.Services.AddSingleton<PlantService>();
+        builder.Services.AddSingleton<RequirementService>();
         builder.Services.AddSingleton<MqttSubscriberService>();
         // TODO: add repositories
 
@@ -92,6 +97,19 @@ public static class Startup
                 Log.Information("Received message: {message}", message);
                 try
                 {
+                    // Check if the message contains a JWT token and if it is valid
+                    BaseDtoWithJwt? dto = JsonSerializer.Deserialize<BaseDtoWithJwt>(message, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+                    if (dto?.Jwt != null)
+                    {
+                        var jwtService = app.Services.GetRequiredService<JwtService>();
+                        var jwtValid = jwtService.IsJwtTokenValid(dto.Jwt);
+                        if (!jwtValid)
+                        {
+                            app.Services.GetRequiredService<WebSocketConnectionService>().RevertAuthentication(socket);
+                            throw new NotAuthenticatedException("JWT token is not valid. Please log in.");
+                        }
+                    }
+                    
                     await app.InvokeClientEventHandler(services, socket, message);
                 }
                 catch (Exception e)

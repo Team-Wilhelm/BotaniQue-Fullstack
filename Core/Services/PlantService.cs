@@ -1,11 +1,12 @@
 ﻿using Infrastructure.Repositories;
+using Shared.Dtos.FromClient.Plant;
 using Shared.Dtos.Plant;
 using Shared.Models;
 using Shared.Models.Exceptions;
 
 namespace Core.Services;
 
-public class PlantService (PlantRepository plantRepository)
+public class PlantService (PlantRepository plantRepository, RequirementService requirementService)
 {
     public async Task<Plant> CreatePlant(CreatePlantDto createPlantDto)
     {
@@ -13,8 +14,23 @@ public class PlantService (PlantRepository plantRepository)
         {
             createPlantDto.Nickname = GenerateRandomNickname();
         }
-        var plant = await plantRepository.CreatePlant(createPlantDto);
-        if (plant == null) throw new Exception("Plant not found");
+
+        var plantId = Guid.NewGuid();
+        var requirementsDto = createPlantDto.CreateRequirementsDto;
+        requirementsDto.PlantId = plantId;
+        var requirements = await requirementService.CreateRequirements(requirementsDto);
+        
+        var plant = new Plant
+        {
+            PlantId = plantId,
+            UserEmail = createPlantDto.UserEmail,
+            CollectionId = Guid.Empty, // TODO: fix when collections are implemented
+            Nickname = createPlantDto.Nickname,
+            ImageUrl = createPlantDto.ImageUrl,
+            Requirements = requirements
+        };
+
+        await plantRepository.CreatePlant(plant);
         return plant;
     }
     

@@ -6,10 +6,11 @@ using api.Extensions;
 using Core.Services;
 using Fleck;
 using lib;
+using Shared.Models;
 
 namespace api.Events.PlantEvents.Client;
 
-public class ClientWantsPlantByIdDto: BaseDto
+public class ClientWantsPlantByIdDto: BaseDtoWithJwt
 {
     [Required] public Guid PlantId { get; set; }
 }

@@ -20,7 +20,13 @@ public class JwtService(IOptions<JwtOptions> jwtOptions)
             IJsonSerializer serializer = new JsonNetSerializer();
             IBase64UrlEncoder urlEncoder = new JwtBase64UrlEncoder();
             IJwtEncoder encoder = new JwtEncoder(algorithm, serializer, urlEncoder);
-            return encoder.Encode(user, jwtOptions.Value.Key);
+            
+            var userClaims = new Dictionary<string, object>
+            {
+                { "email", user.UserEmail },
+                { "name", user.UserName }
+            };
+            return encoder.Encode(userClaims, jwtOptions.Value.Key);
         }
         catch (Exception e)
         {
@@ -45,6 +51,25 @@ public class JwtService(IOptions<JwtOptions> jwtOptions)
         {
             Log.Error(e, "ValidateJwtAndReturnClaims");
             throw new AuthenticationException("Authentication failed.");
+        }
+    }
+    
+    public bool IsJwtTokenValid(string jwt)
+    {
+        try
+        {
+            IJsonSerializer serializer = new JsonNetSerializer();
+            var provider = new UtcDateTimeProvider();
+            IBase64UrlEncoder urlEncoder = new JwtBase64UrlEncoder();
+            IJwtValidator validator = new JwtValidator(serializer, provider);
+            IJwtDecoder decoder = new JwtDecoder(serializer, validator, urlEncoder, new HMACSHA512Algorithm());
+            decoder.Decode(jwt, jwtOptions.Value.Key);
+            return true;
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "IsJwtTokenValid");
+            return false;
         }
     }
 }

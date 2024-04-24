@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Shared.Dtos.FromClient;
+using Shared.Dtos.FromClient.Identity;
 using Shared.Models.Identity;
 
 namespace Infrastructure.Repositories;

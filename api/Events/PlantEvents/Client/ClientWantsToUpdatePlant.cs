@@ -4,10 +4,11 @@ using Core.Services;
 using Fleck;
 using lib;
 using Shared.Dtos.Plant;
+using Shared.Models;
 
 namespace api.Events.PlantEvents.Client;
 
-public class ClientWantsToUpdatePlantDto: BaseDto
+public class ClientWantsToUpdatePlantDto: BaseDtoWithJwt
 {
     public UpdatePlantDto UpdatePlantDto { get; set; }
 }

@@ -1,8 +1,7 @@
-﻿using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
-using Shared.Models.Information;
+﻿using System.ComponentModel.DataAnnotations;
+using Shared.Dtos.FromClient.Requirements;
 
-namespace Shared.Dtos.Plant;
+namespace Shared.Dtos.FromClient.Plant;
 
 public class CreatePlantDto
 {
@@ -10,5 +9,5 @@ public class CreatePlantDto
     public Guid? CollectionId { get; set; }
     [MaxLength(50)] public string? Nickname { get; set; }
     public string ImageUrl { get; set; } = null!;
-    public Requirements Requirements { get; set; } = new();
+    public CreateRequirementsDto CreateRequirementsDto { get; set; } = new();
 }
