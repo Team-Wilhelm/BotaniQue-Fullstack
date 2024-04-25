@@ -47,9 +47,11 @@ public static class Startup
         builder.Services.AddSingleton<UserRepository>();
         builder.Services.AddSingleton<PlantRepository>();
         builder.Services.AddSingleton<RequirementsRepository>();
+        builder.Services.AddSingleton<ConditionsLogsRepository>();
         builder.Services.AddSingleton<UserService>();
         builder.Services.AddSingleton<PlantService>();
         builder.Services.AddSingleton<RequirementService>();
+        builder.Services.AddSingleton<ConditionsLogsService>();
         builder.Services.AddSingleton<MqttSubscriberService>();
         // TODO: add repositories
 

@@ -52,4 +52,33 @@ public class PlantRepository (IDbContextFactory<ApplicationDbContext> dbContextF
         context.Plants.Remove(plant);
         await context.SaveChangesAsync();
     }
+    
+    public async Task<Guid> GetPlantIdByDeviceIdAsync(string deviceId)
+    {
+        await using var context = await dbContextFactory.CreateDbContextAsync();
+        var plant = await context.Plants
+            .FirstOrDefaultAsync(p => p.DeviceId == deviceId);
+        
+        if (plant is null)
+        {
+            throw new NotFoundException($"Plant with device id {deviceId} not found");
+        }
+
+        return plant.PlantId;
+    }
+    
+    public async Task<Conditions> GetRequirementsForPlant(Guid plantId)
+    {
+        await using var context = await dbContextFactory.CreateDbContextAsync();
+        var plant = await context.Plants
+            .Include(plant => plant.Requirements)
+            .FirstOrDefaultAsync(p => p.PlantId == plantId);
+        
+        if (plant?.Requirements is null)
+        {
+            throw new NotFoundException($"Requirements for plant: {plantId} not found");
+        }
+
+        return plant.Requirements;
+    }
 }
