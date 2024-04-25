@@ -12,42 +12,7 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
-
-    # Service containers to run with `container-job`
-    services:
-      # Label used to access the service container
-      postgres:
-        # Docker Hub image
-        image: postgres
-        # Provide the password for postgres
-        env:
-          POSTGRES_PASSWORD: postgres
-        # Set health checks to wait until postgres has started
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
-      - name: Start PostgreSQL on Ubuntu
-        run: |
-          sudo systemctl start postgresql.service
-          pg_isready
-
-      - name: Create additional user
-        run: |
-          sudo -u postgres psql --command="CREATE USER testuser PASSWORD 'password'" --command="\du"
-
-      - name: Create additional database
-        run: |
-          sudo -u postgres createdb TestDatabase --owner=testuser
-          PGPASSWORD=password
-
-      - name: Enable uuid-ossp extension
-        run: |
-          echo "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";" | sudo -u postgres psql TestDatabase
-
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -55,19 +20,9 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-          
-      - name: Create database
-        env:
-          REMOTE_TESTING: "true"
-          BotaniqueDb: Host=localhost;Database=TestDatabase;Username=testuser;Password=password
-        run: cd api &&
-          dotnet run &
-          (sleep 90 && kill -9 $(lsof -t -i:5141))
 
       - name: Run tests
-        env:
-          BotaniqueDb: Host=localhost;Database=TestDatabase;Username=testuser;Password=password
-        run: cd Tests && dotnet test --no-build
+        run: cd Tests && dotnet test
 
 
 

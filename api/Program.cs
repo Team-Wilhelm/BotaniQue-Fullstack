@@ -14,6 +14,7 @@ using Serilog;
 using Shared.Dtos.FromClient;
 using Shared.Models;
 using Shared.Models.Exceptions;
+using Testcontainers.PostgreSql;
 
 namespace api;
 
@@ -41,21 +42,43 @@ public static class Startup
 
         var builder = WebApplication.CreateBuilder(args);
 
-        var connectionString = builder.Configuration.GetConnectionString("BotaniqueDb");
-        builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
+        if (args.Contains("Testing=true"))
         {
-            connectionString ??= Environment.GetEnvironmentVariable("BotaniqueDb");
-            options.UseNpgsql(connectionString ?? throw new Exception("Connection string cannot be null"));
-        });
+            var dbContainer = 
+                new PostgreSqlBuilder()
+                .WithDatabase("botanique")
+                .WithUsername("root")
+                .WithPassword("password")
+                .Build();
 
+            await dbContainer.StartAsync();
+            
+            var connectionString = dbContainer.GetConnectionString();
+            builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
+            {
+                options.UseNpgsql(connectionString ?? throw new Exception("Connection string cannot be null"));
+            });
+        }
+
+        else
+        {
+            var connectionString = builder.Configuration.GetConnectionString("BotaniqueDb");
+            builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
+            {
+                connectionString ??= Environment.GetEnvironmentVariable("BotaniqueDb");
+                options.UseNpgsql(connectionString ?? throw new Exception("Connection string cannot be null"));
+            });
+        }
+        
         builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JWT"));
         builder.Services.Configure<MqttOptions>(builder.Configuration.GetSection("MQTT"));
         builder.Services.AddServicesAndRepositories();
-
+        
         var services = builder.FindAndInjectClientEventHandlers(Assembly.GetExecutingAssembly());
+        
         var app = builder.Build();
 
-        if (args.Contains("--db-init") || Environment.GetEnvironmentVariable("REMOTE_TESTING") is not null)
+        if (args.Contains("--db-init"))
         {
             var scope = app.Services.CreateScope();
             var db = app.Services.GetRequiredService<IDbContextFactory<ApplicationDbContext>>().CreateDbContext();
@@ -72,10 +95,9 @@ public static class Startup
             });
         }
 
-        // builder.WebHost.UseUrls("http://*:9999");
-
         var port = Environment.GetEnvironmentVariable("PORT") ?? "8181";
         var wsServer = new WebSocketServer($"ws://0.0.0.0:{port}");
+        // builder.WebHost.UseUrls("http://*:9999");
 
         wsServer.Start(socket =>
         {
