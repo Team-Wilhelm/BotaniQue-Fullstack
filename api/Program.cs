@@ -42,7 +42,7 @@ public static class Startup
 
         var builder = WebApplication.CreateBuilder(args);
 
-        if (args.Contains("Testing=true"))
+        if (args.Contains("ENVIRONMENT=Testing"))
         {
             var dbContainer = 
                 new PostgreSqlBuilder()

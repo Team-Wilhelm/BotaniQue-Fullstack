@@ -8,6 +8,6 @@ public class GlobalTestSetup
     [OneTimeSetUp]
     public async Task StartApi()
     {
-        await Startup.StartApi(["Testing=true", "--db-init"]);
+        await Startup.StartApi(["ENVIRONMENT=Testing", "--db-init"]);
     }
 }
