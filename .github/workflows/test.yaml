@@ -59,7 +59,7 @@ jobs:
       - name: Create database
         env:
           REMOTE_TESTING: "true"
-        run: dotnet run &
+        run: dotnet run  --project api &
           (sleep 60 && kill -9 $(lsof -t -i:5141))
 
       - name: Run tests
