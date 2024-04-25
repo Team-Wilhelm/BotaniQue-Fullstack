@@ -1,7 +1,8 @@
-using api.Options;
+using Core.Options;
 using Microsoft.Extensions.Options;
 using MQTTnet;
 using MQTTnet.Client;
+using Shared.Models.Information;
 
 namespace Core.Services;
 
@@ -19,11 +20,7 @@ public class MqttSubscriberService
 
     public async Task SubscribeAsync()
     {
-        /*
-         * This sample subscribes to a topic and processes the received message.
-         */
-
-        var mqttFactory = new MqttFactory();
+       var mqttFactory = new MqttFactory();
 
         //TODO: remove token before pushing to GitHub
         using var mqttClient = mqttFactory.CreateMqttClient();
@@ -53,5 +50,10 @@ public class MqttSubscriberService
 
         Console.WriteLine("Press enter to exit.");
         Console.ReadLine();
+    }
+
+    private async Task SaveConditionsAsync(Guid plantId, ConditionsLog conditions)
+    {
+        
     }
 }
