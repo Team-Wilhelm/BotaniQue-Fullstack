@@ -35,6 +35,7 @@ public abstract class TestBase
         
         var jwtSubscription = webSocketTestClient.Client.MessageReceived.Subscribe(msg =>
         {
+            Console.WriteLine(msg.Text);
             var serverAuthenticates = JsonSerializer.Deserialize<ServerAuthenticatesUser>(msg.Text, options: new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             jwt = serverAuthenticates.Jwt;
         });
