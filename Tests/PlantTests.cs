@@ -21,6 +21,7 @@ public class PlantTests : TestBase
         
         await webSocketTestClient.DoAndAssert(new ClientWantsToCreatePlantDto { CreatePlantDto = createPlantDto, Jwt = jwt }, receivedMessages =>
         {
+            receivedMessages.ForEach(e => Console.WriteLine(e.eventType));
             return receivedMessages.Count(e => e.eventType == nameof(ServerSendsPlant)) == 1;
         });
         
@@ -32,6 +33,7 @@ public class PlantTests : TestBase
             PageSize = 10
         }, receivedMessages =>
         {
+            receivedMessages.ForEach(e => Console.WriteLine(e.eventType));
             return receivedMessages.Count(e => e.eventType == nameof(ServerSendsAllPlants)) == 1;
         });
     }

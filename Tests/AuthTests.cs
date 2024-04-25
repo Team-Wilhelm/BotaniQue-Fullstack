@@ -17,6 +17,7 @@ public class AuthTests : TestBase
         var registerUserDto = GenerateRandomRegisterUserDto();
         await ws.DoAndAssert(new ClientWantsToSignUpDto { RegisterUserDto = registerUserDto },  receivedMessages =>
         {
+            receivedMessages.ForEach(e => Console.WriteLine(e.eventType));
             return receivedMessages.Count(e => e.eventType == nameof(ServerSignsUserUp)) == 1;
         });
         
@@ -28,11 +29,13 @@ public class AuthTests : TestBase
 
         await ws.DoAndAssert(new ClientWantsToLogInDto { LoginDto = loginDto }, receivedMessages =>
         {
+            receivedMessages.ForEach(e => Console.WriteLine(e.eventType));
             return receivedMessages.Count(e => e.eventType == nameof(ServerAuthenticatesUser)) == 1;
         });
         
         await ws.DoAndAssert(new ClientWantsToLogOutDto { UserEmail = registerUserDto.Email }, receivedMessages =>
         {
+            receivedMessages.ForEach(e => Console.WriteLine(e.eventType));
             return receivedMessages.Count(e => e.eventType == nameof(ServerLogsOutUser)) == 1;
         });
     }
@@ -107,7 +110,6 @@ public class AuthTests : TestBase
         
         await ws.DoAndAssert(new ClientWantsToLogInDto { LoginDto = loginDto }, receivedMessages =>
         {
-            receivedMessages.ForEach(e => Console.WriteLine(e.eventType));
             return receivedMessages.Count(e => e.eventType == nameof(ServerAuthenticatesUser)) == 0 
                    && receivedMessages.Count(e => e.eventType == nameof(ServerRejectsWrongCredentials)) == 1;
         });
