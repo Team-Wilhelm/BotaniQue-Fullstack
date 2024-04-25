@@ -59,6 +59,7 @@ jobs:
       - name: Create database
         env:
           REMOTE_TESTING: "true"
+          BotaniqueDb: Host=localhost;Database=TestDatabase;Username=testuser;Password=password
         run: dotnet run  --project api &
           (sleep 60 && kill -9 $(lsof -t -i:5141))
 
