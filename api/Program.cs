@@ -1,6 +1,5 @@
 using System.Reflection;
 using System.Text.Json;
-using api.Options;
 using AsyncApi.Net.Generator;
 using AsyncApi.Net.Generator.AsyncApiSchema.v2;
 using Core.Options;
@@ -48,15 +47,17 @@ public static class Startup
         builder.Services.AddSingleton<UserRepository>();
         builder.Services.AddSingleton<PlantRepository>();
         builder.Services.AddSingleton<RequirementsRepository>();
+        builder.Services.AddSingleton<ConditionsLogsRepository>();
         builder.Services.AddSingleton<UserService>();
         builder.Services.AddSingleton<PlantService>();
         builder.Services.AddSingleton<RequirementService>();
+        builder.Services.AddSingleton<ConditionsLogsService>();
         builder.Services.AddSingleton<MqttSubscriberService>();
         // TODO: add repositories
 
         builder.Services.AddAsyncApiSchemaGeneration(o =>
         {
-            o.AssemblyMarkerTypes = new[] { typeof(BaseDto) }; // add assemply marker
+            o.AssemblyMarkerTypes = new[] { typeof(BaseDto) }; // add assembly marker
             o.AsyncApi = new AsyncApiDocument { Info = new Info { Title = "BotaniQue" } };
         });
 
@@ -118,6 +119,10 @@ public static class Startup
                 }
             };
         });
+        
+        // Connect and subscribe to MQTT
+        var mqttSubscriberService = app.Services.GetRequiredService<MqttSubscriberService>();
+        _ = mqttSubscriberService.SubscribeAsync();
 
         return app;
     }

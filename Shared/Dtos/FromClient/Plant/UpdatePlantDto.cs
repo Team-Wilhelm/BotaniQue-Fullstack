@@ -8,7 +8,7 @@ public class UpdatePlantDto
 {
     [Required] public Guid PlantId { get; set; }
     public Guid? CollectionId { get; set; }
-
+    public string? DeviceId { get; set; }
     [MaxLength(50)] public string? Nickname { get; set; }
     public string? ImageUrl { get; set; }
     public UpdateRequirementDto? UpdateRequirementDto { get; set; } 

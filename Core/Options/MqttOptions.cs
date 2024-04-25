@@ -1,4 +1,4 @@
-namespace api.Options;
+namespace Core.Options;
 
 public class MqttOptions
 {
