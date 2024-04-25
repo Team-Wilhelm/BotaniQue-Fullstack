@@ -6,7 +6,7 @@ on:
       - main
   push:
     branches:
-      - tests
+      - tests # revert once tests are done
   workflow_dispatch:
     
 jobs:
@@ -23,7 +23,3 @@ jobs:
 
       - name: Run tests
         run: cd Tests && dotnet test
-
-
-
-

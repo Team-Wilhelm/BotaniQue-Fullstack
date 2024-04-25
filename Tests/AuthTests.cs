@@ -14,7 +14,6 @@ public class AuthTests : TestBase
     public async Task RegisterLogInLogOut()
     {
         var ws = await new WebSocketTestClient().ConnectAsync();
-        ws.Client.MessageReceived.Subscribe(m => Console.WriteLine(m.Text));
         
         var registerUserDto = GenerateRandomRegisterUserDto();
         await ws.DoAndAssert(new ClientWantsToSignUpDto { RegisterUserDto = registerUserDto },  receivedMessages =>
