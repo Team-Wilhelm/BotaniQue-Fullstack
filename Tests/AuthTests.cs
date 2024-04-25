@@ -1,3 +1,4 @@
+using System.Reactive.Linq;
 using api.Events.Auth.Client;
 using api.Events.Auth.Server;
 using api.Events.Global;
@@ -13,11 +14,11 @@ public class AuthTests : TestBase
     public async Task RegisterLogInLogOut()
     {
         var ws = await new WebSocketTestClient().ConnectAsync();
+        ws.Client.MessageReceived.Subscribe(m => Console.WriteLine(m.Text));
         
         var registerUserDto = GenerateRandomRegisterUserDto();
         await ws.DoAndAssert(new ClientWantsToSignUpDto { RegisterUserDto = registerUserDto },  receivedMessages =>
         {
-            receivedMessages.ForEach(e => Console.WriteLine(e.eventType));
             return receivedMessages.Count(e => e.eventType == nameof(ServerSignsUserUp)) == 1;
         });
         
@@ -29,13 +30,11 @@ public class AuthTests : TestBase
 
         await ws.DoAndAssert(new ClientWantsToLogInDto { LoginDto = loginDto }, receivedMessages =>
         {
-            receivedMessages.ForEach(e => Console.WriteLine(e.eventType));
             return receivedMessages.Count(e => e.eventType == nameof(ServerAuthenticatesUser)) == 1;
         });
         
         await ws.DoAndAssert(new ClientWantsToLogOutDto { UserEmail = registerUserDto.Email }, receivedMessages =>
         {
-            receivedMessages.ForEach(e => Console.WriteLine(e.eventType));
             return receivedMessages.Count(e => e.eventType == nameof(ServerLogsOutUser)) == 1;
         });
     }
