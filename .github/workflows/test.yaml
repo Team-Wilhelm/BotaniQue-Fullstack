@@ -1,3 +1,5 @@
+name: Tests
+
 on:
   pull_request:
     branches:
@@ -57,12 +59,13 @@ jobs:
       - name: Create database
         env:
           REMOTE_TESTING: "true"
-        run: dotnet run
+        run: dotnet run &
+          (sleep 60 && kill -9 $(lsof -t -i:5141))
 
       - name: Run tests
         env:
           BotaniqueDb: Host=localhost;Database=TestDatabase;Username=testuser;Password=password
-        run: cd Tests && dotnet test
+        run: cd Tests && dotnet test --no-build
 
 
 
