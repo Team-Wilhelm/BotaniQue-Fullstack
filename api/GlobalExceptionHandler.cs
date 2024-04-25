@@ -28,7 +28,7 @@ public static class GlobalExceptionHandler
             serverResponse = new ServerSendsErrorMessage
             {
                 // TODO: revert Error = "Something went wrong. Please try again later."
-                Error = message ?? ex.Message
+                Error = ex.Message
             };
 
         socket.SendDto(serverResponse);

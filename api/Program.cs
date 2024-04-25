@@ -131,7 +131,7 @@ public static class Startup
                 }
                 catch (Exception e)
                 {
-                    e.Handle(socket, e.Message);
+                    e.Handle(socket, message);
                 }
             };
         });
