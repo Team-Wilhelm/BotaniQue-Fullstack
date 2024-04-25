@@ -54,8 +54,10 @@ jobs:
         with:
           dotnet-version: 8.0.x
           
-      - name: Build database
-        run: dotnet ef migrations add InitialCreate && dotnet ef database update     
+      - name: Create database
+        env:
+          REMOTE_TESTING: "true"
+        run: dotnet run
 
       - name: Run tests
         env:

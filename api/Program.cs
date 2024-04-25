@@ -1,9 +1,8 @@
 using System.Reflection;
 using System.Text.Json;
 using api.Events.Auth.Client;
+using api.Extensions;
 using api.Options;
-using AsyncApi.Net.Generator;
-using AsyncApi.Net.Generator.AsyncApiSchema.v2;
 using Core.Options;
 using Core.Services;
 using Fleck;
@@ -51,30 +50,12 @@ public static class Startup
 
         builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JWT"));
         builder.Services.Configure<MqttOptions>(builder.Configuration.GetSection("MQTT"));
-        builder.Services.AddSingleton<WebSocketConnectionService>();
-        builder.Services.AddSingleton<JwtService>();
-        builder.Services.AddSingleton<UserRepository>();
-        builder.Services.AddSingleton<PlantRepository>();
-        builder.Services.AddSingleton<RequirementsRepository>();
-        builder.Services.AddSingleton<UserService>();
-        builder.Services.AddSingleton<PlantService>();
-        builder.Services.AddSingleton<RequirementService>();
-        builder.Services.AddSingleton<MqttSubscriberService>();
-        // TODO: add repositories
-
-        builder.Services.AddAsyncApiSchemaGeneration(o =>
-        {
-            o.AssemblyMarkerTypes = new[] { typeof(BaseDto) }; // add assemply marker
-            o.AsyncApi = new AsyncApiDocument { Info = new Info { Title = "BotaniQue" } };
-        });
+        builder.Services.AddServicesAndRepositories();
 
         var services = builder.FindAndInjectClientEventHandlers(Assembly.GetExecutingAssembly());
         var app = builder.Build();
 
-        app.MapAsyncApiDocuments();
-        app.MapAsyncApiUi();
-
-        if (args.Contains("--db-init"))
+        if (args.Contains("--db-init") || Environment.GetEnvironmentVariable("REMOTE_TESTING") is not null)
         {
             var scope = app.Services.CreateScope();
             var db = app.Services.GetRequiredService<IDbContextFactory<ApplicationDbContext>>().CreateDbContext();
