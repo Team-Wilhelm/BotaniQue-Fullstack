@@ -1,4 +1,6 @@
-﻿namespace Shared.Models.Exceptions;
+﻿using Shared.Exceptions;
+
+namespace Shared.Models.Exceptions;
 
 public class RegisterDeviceException: AppException
 {

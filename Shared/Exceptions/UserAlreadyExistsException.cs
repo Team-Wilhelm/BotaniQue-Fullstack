@@ -1,3 +1,5 @@
+using Shared.Exceptions;
+
 namespace Shared.Models.Exceptions;
 
 public class UserAlreadyExistsException : AppException

@@ -72,6 +72,7 @@ public static class Startup
         builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JWT"));
         builder.Services.Configure<MqttOptions>(builder.Configuration.GetSection("MQTT"));
         builder.Services.Configure<AzureVisionOptions>(builder.Configuration.GetSection("AzureVision"));
+        builder.Services.Configure<VercelBlobOptions>(builder.Configuration.GetSection("VercelBlob"));
         
         // On ci options are stored as repository secrets
         if (args.Contains("ENVIRONMENT=Testing") && Environment.GetEnvironmentVariable("CI") is not null)
