@@ -96,8 +96,9 @@ public static class Startup
             
             builder.Services.Configure<AzureVisionOptions>(options =>
             {
-                options.Endpoint = Environment.GetEnvironmentVariable("AZURE_VISION_ENDPOINT") ?? throw new Exception("Azure vision endpoint is missing");
+                options.BaseUrl = Environment.GetEnvironmentVariable("AZURE_VISION_BASE_URL") ?? throw new Exception("Azure vision endpoint is missing");
                 options.Key = Environment.GetEnvironmentVariable("AZURE_VISION_KEY") ?? throw new Exception("Azure vision key is missing");
+                options.RemoveBackgroundEndpoint = Environment.GetEnvironmentVariable("AZURE_VISION_REMOVE_BACKGROUND_ENDPOINT") ?? throw new Exception("Azure vision remove background endpoint is missing");
             });
         }
         
@@ -142,7 +143,6 @@ public static class Startup
                     var dto = JsonSerializer.Deserialize<BaseDtoWithJwt>(message, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     if (dto is not null && _publicEvents.Contains(dto.eventType) == false)
                     {
-                        Console.WriteLine("Checking JWT token");
                         if (dto.Jwt is null)
                         {
                             throw new NotAuthenticatedException("JWT token is missing. Please log in.");

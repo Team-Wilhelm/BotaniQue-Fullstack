@@ -23,5 +23,6 @@ public static class AddServicesAndRepositoriesExtension
         services.AddSingleton<RequirementService>();
         services.AddSingleton<MqttSubscriberService>();
         services.AddSingleton<MqttPublisherService>();
+        services.AddSingleton<ImageBackgroundRemoverService>();
     }
 }
