@@ -1,9 +1,7 @@
-using System.Reactive.Linq;
 using api.Events.Auth.Client;
 using api.Events.Auth.Server;
 using api.Events.Global;
 using lib;
-using Shared.Dtos.FromClient;
 using Shared.Dtos.FromClient.Identity;
 
 namespace Tests;

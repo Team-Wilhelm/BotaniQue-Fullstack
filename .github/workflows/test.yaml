@@ -22,4 +22,20 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Run tests
+        env:
+          CI: true
+          JWT_KEY: ${{ secrets.JWT_KEY }}
+          JWT_ISSUER: ${{ secrets.JWT_ISSUER }}
+          JWT_AUDIENCE: ${{ secrets.JWT_AUDIENCE }}
+          JWT_EXPIRY: ${{ secrets.JWT_EXPIRY }}
+          
+          MQTT_BROKER: ${{ secrets.MQTT_BROKER }}
+          MQTT_PORT: ${{ secrets.MQTT_PORT }}
+          MQTT_USERNAME: ${{ secrets.MQTT_USERNAME }}
+          MQTT_CLIENT_ID: ${{ secrets.MQTT_CLIENT_ID }}
+          MQTT_SUBSCRIBE_TOPIC: ${{ secrets.MQTT_SUBSCRIBE_TOPIC }}
+          MQTT_PUBLISH_TOPIC: ${{ secrets.MQTT_PUBLISH_TOPIC }}
+          
+          AZURE_VISION_KEY: ${{ secrets.AZURE_VISION_KEY }}
+          AZURE_VISION_ENDPOINT: ${{ secrets.AZURE_VISION_ENDPOINT }}
         run: cd Tests && dotnet test

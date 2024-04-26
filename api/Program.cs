@@ -68,9 +68,40 @@ public static class Startup
                 options.UseNpgsql(connectionString ?? throw new Exception("Connection string cannot be null"));
             });
         }
-        
+
         builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JWT"));
         builder.Services.Configure<MqttOptions>(builder.Configuration.GetSection("MQTT"));
+        builder.Services.Configure<AzureVisionOptions>(builder.Configuration.GetSection("AzureVision"));
+        
+        // On ci options are stored as repository secrets
+        if (args.Contains("ENVIRONMENT=Testing") && Environment.GetEnvironmentVariable("CI") is not null)
+        {
+            builder.Services.Configure<JwtOptions>(options =>
+            {
+                options.Key = Environment.GetEnvironmentVariable("JWT_KEY") ?? throw new Exception("JWT key is missing");
+                options.Issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? throw new Exception("JWT issuer is missing");
+                options.Audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? throw new Exception("JWT audience is missing");
+                options.ExpirationMinutes = int.Parse(Environment.GetEnvironmentVariable("JWT_EXPIRY") ?? throw new Exception("JWT expiration minutes is missing"));
+            });
+            
+            builder.Services.Configure<MqttOptions>(options =>
+            {
+                options.Server = Environment.GetEnvironmentVariable("MQTT_BROKER") ?? throw new Exception("MQTT broker is missing");
+                options.Port = int.Parse(Environment.GetEnvironmentVariable("MQTT_PORT") ?? throw new Exception("MQTT port is missing"));
+                options.ClientId = Environment.GetEnvironmentVariable("MQTT_CLIENT_ID") ?? throw new Exception("MQTT client id is missing");
+                options.Username = Environment.GetEnvironmentVariable("MQTT_USERNAME") ?? throw new Exception("MQTT username is missing");
+                options.SubscribeTopic = Environment.GetEnvironmentVariable("MQTT_SUBSCRIBE_TOPIC") ?? throw new Exception("MQTT subscribe topic is missing");
+                options.PublishTopic = Environment.GetEnvironmentVariable("MQTT_PUBLISH_TOPIC") ?? throw new Exception("MQTT publish topic is missing");
+            });
+            
+            builder.Services.Configure<AzureVisionOptions>(options =>
+            {
+                options.Endpoint = Environment.GetEnvironmentVariable("AZURE_VISION_ENDPOINT") ?? throw new Exception("Azure vision endpoint is missing");
+                options.Key = Environment.GetEnvironmentVariable("AZURE_VISION_KEY") ?? throw new Exception("Azure vision key is missing");
+            });
+        }
+        
+        
         builder.Services.AddServicesAndRepositories();
         
         var services = builder.FindAndInjectClientEventHandlers(Assembly.GetExecutingAssembly());

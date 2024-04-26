@@ -46,10 +46,10 @@ public class PlantTests : TestBase
             ImageUrl = "https://realurl.com",
             CreateRequirementsDto = new CreateRequirementsDto
             {
-                SoilMoisture = RequirementLevel.Low,
+                SoilMoistureLevel = RequirementLevel.Low,
                 LightLevel = RequirementLevel.Medium,
-                Temperature = RequirementLevel.High,
-                Humidity = RequirementLevel.Low
+                TemperatureLevel = RequirementLevel.High,
+                HumidityLevel = RequirementLevel.Low
             }
         };
         return createPlantDto;
