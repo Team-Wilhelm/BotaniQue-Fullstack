@@ -12,19 +12,19 @@ public class Requirements : Conditions
     {
         ConditionsId = Guid.NewGuid();
         PlantId = createRequirementsDto.PlantId!.Value; // plantID should be assigned to the dto before using this constructor
-        SoilMoisture = createRequirementsDto.SoilMoisture;
+        SoilMoistureLevel = createRequirementsDto.SoilMoistureLevel;
         LightLevel = createRequirementsDto.LightLevel;
-        Temperature = createRequirementsDto.Temperature;
-        Humidity = createRequirementsDto.Humidity;
+        TemperatureLevel = createRequirementsDto.TemperatureLevel;
+        HumidityLevel = createRequirementsDto.HumidityLevel;
     }
     
     public Requirements(UpdateRequirementDto updateRequirementDto, Guid plantId)
     {
         ConditionsId = updateRequirementDto.ConditionsId;
         PlantId = plantId;
-        SoilMoisture = updateRequirementDto.SoilMoisture;
+        SoilMoistureLevel = updateRequirementDto.SoilMoistureLevel;
         LightLevel = updateRequirementDto.LightLevel;
-        Temperature = updateRequirementDto.Temperature;
-        Humidity = updateRequirementDto.Humidity;
+        TemperatureLevel = updateRequirementDto.TemperatureLevel;
+        HumidityLevel = updateRequirementDto.HumidityLevel;
     }
 }

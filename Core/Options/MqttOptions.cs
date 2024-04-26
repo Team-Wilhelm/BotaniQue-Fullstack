@@ -6,5 +6,6 @@ public class MqttOptions
     public int Port { get; set; }
     public string Username { get; set; }
     public string ClientId { get; set; }
-    public string Topic { get; set; }
+    public string SubscribeTopic { get; set; }
+    public string PublishTopic { get; set; }
 }

@@ -5,7 +5,7 @@ using Shared.Models.Information;
 
 namespace Core.Services;
 
-public class ConditionsLogsService (ConditionsLogsRepository conditionsLogsRepository, PlantRepository plantRepository)
+public class ConditionsLogsService (ConditionsLogsRepository conditionsLogsRepository, PlantRepository plantRepository, MqttPublisherService mqttPublisherService)
 {
     public async Task CreateConditionsLogAsync(CreateConditionsLogDto createConditionsLogDto)
     {
@@ -15,23 +15,36 @@ public class ConditionsLogsService (ConditionsLogsRepository conditionsLogsRepos
         {
             throw new RegisterDeviceException();
         }
+        
+        var recentMood = conditionsLogsRepository.GetRecentMoodAsync(plantId).Result;
+        
         var conditionsLog = new ConditionsLog
         {
             ConditionsId = new Guid(),
-            TimeStamp = DateTime.UtcNow, //TODO get this from the right place
-            SoilMoisture = CalculateSoilMoistureLevel(createConditionsLogDto.SoilMoisturePercentage),
-            LightLevel = CalculateLightLevel(createConditionsLogDto.LightLevel),
-            Temperature = CalculateTemperatureLevel(createConditionsLogDto.Temperature),
-            Humidity = CalculateHumidityLevel(createConditionsLogDto.Humidity),
+            TimeStamp = DateTime.UtcNow,
+            SoilMoisture = createConditionsLogDto.SoilMoisturePercentage,
+            Light = createConditionsLogDto.Light,
+            Temperature = createConditionsLogDto.Temperature,
+            Humidity = createConditionsLogDto.Humidity,
             PlantId = plantId
         };
         
-        conditionsLog.Mood = CalculateMood(conditionsLog);
-
-        Console.WriteLine("Conditions log created");
-        Console.WriteLine(conditionsLog);
+        var newMood = CalculateMood(conditionsLog);
+        conditionsLog.Mood = newMood;
 
         await conditionsLogsRepository.CreateConditionsLogAsync(conditionsLog);
+        
+        
+        if (newMood != recentMood)
+        {
+            //TODO send Event to mobile app
+            var moodDto = new MoodDto
+            {
+                Mood = newMood,
+            };
+            var deviceId = createConditionsLogDto.DeviceId;
+            await mqttPublisherService.PublishAsync(moodDto, deviceId);
+        }
     }
     
     private RequirementLevel CalculateTemperatureLevel (double value)
@@ -78,18 +91,18 @@ public class ConditionsLogsService (ConditionsLogsRepository conditionsLogsRepos
         };
     }
     
-    private int CalculateMood (Conditions conditions)
+    private int CalculateMood (ConditionsLog conditionsLog)
     {
         // Compare ideal requirements for humidity, temperature, soil moisture and light level with actual conditions and calculate mood from 0-4
         // get ideal requirements from plant
-        var requirementsForPlant = plantRepository.GetRequirementsForPlant(conditions.PlantId);
+        var requirementsForPlant = plantRepository.GetRequirementsForPlant(conditionsLog.PlantId);
         // compare with actual conditions
         var mood = 0;
         // calculate mood
-        mood += CalculateScore((int)requirementsForPlant.Result.Humidity, (int)conditions.Humidity);
-        mood += CalculateScore((int)requirementsForPlant.Result.Temperature, (int)conditions.Temperature);
-        mood += CalculateScore((int)requirementsForPlant.Result.SoilMoisture, (int)conditions.SoilMoisture);
-        mood += CalculateScore((int)requirementsForPlant.Result.LightLevel, (int)conditions.LightLevel);
+        mood += CalculateScore((int)requirementsForPlant.Result.HumidityLevel, (int)CalculateHumidityLevel(conditionsLog.Humidity));
+        mood += CalculateScore((int)requirementsForPlant.Result.TemperatureLevel, (int)CalculateTemperatureLevel(conditionsLog.Temperature));
+        mood += CalculateScore((int)requirementsForPlant.Result.SoilMoistureLevel, (int)CalculateSoilMoistureLevel(conditionsLog.SoilMoisture));
+        mood += CalculateScore((int)requirementsForPlant.Result.LightLevel, (int)CalculateLightLevel(conditionsLog.Light));
         
         if (mood == 0)
         {

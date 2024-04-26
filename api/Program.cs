@@ -53,6 +53,7 @@ public static class Startup
         builder.Services.AddSingleton<RequirementService>();
         builder.Services.AddSingleton<ConditionsLogsService>();
         builder.Services.AddSingleton<MqttSubscriberService>();
+        builder.Services.AddSingleton<MqttPublisherService>();
         // TODO: add repositories
 
         builder.Services.AddAsyncApiSchemaGeneration(o =>

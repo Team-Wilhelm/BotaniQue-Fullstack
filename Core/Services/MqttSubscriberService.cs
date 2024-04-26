@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using Core.Options;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 using MQTTnet;
 using MQTTnet.Client;
@@ -31,13 +32,9 @@ public class MqttSubscriberService
             .WithTcpServer(_options.Value.Server, _options.Value.Port)
             .WithCredentials(_options.Value.Username)
             .Build();
-
-        // Setup message handling before connecting so that queued messages
-        // are also handled properly. When there is no event handler attached all
-        // received messages get lost.
+        
         mqttClient.ApplicationMessageReceivedAsync += async e =>
         {
-            //var payload = e.ApplicationMessage.ConvertPayloadToString();
             var payload = Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment);
             var conditions = JsonSerializer.Deserialize<CreateConditionsLogDto>(payload, options:
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
@@ -51,7 +48,7 @@ public class MqttSubscriberService
 
         var mqttSubscribeOptions = mqttFactory.CreateSubscribeOptionsBuilder()
             .WithTopicFilter(
-                f => { f.WithTopic(_options.Value.Topic); })
+                f => { f.WithTopic(_options.Value.SubscribeTopic); })
             .Build();
 
         await mqttClient.SubscribeAsync(mqttSubscribeOptions, CancellationToken.None);
