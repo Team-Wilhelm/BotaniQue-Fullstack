@@ -4,8 +4,8 @@ public abstract class Conditions
 {
     public Guid ConditionsId { get; set; }
     public Guid PlantId { get; set; }
-    public RequirementLevel SoilMoisture { get; set; }
+    public RequirementLevel SoilMoistureLevel { get; set; }
     public RequirementLevel LightLevel { get; set; }
-    public RequirementLevel Temperature { get; set; }
-    public RequirementLevel Humidity { get; set; }
+    public RequirementLevel TemperatureLevel { get; set; }
+    public RequirementLevel HumidityLevel { get; set; }
 }

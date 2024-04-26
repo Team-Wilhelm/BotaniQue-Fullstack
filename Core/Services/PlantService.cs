@@ -27,6 +27,7 @@ public class PlantService (PlantRepository plantRepository, RequirementService r
             // CollectionId = Guid.Empty, // TODO: fix when collections are implemented
             Nickname = createPlantDto.Nickname,
             ImageUrl = createPlantDto.ImageUrl ?? DefaultImageUrl,
+            DeviceId = createPlantDto.DeviceId
         };
         
         await plantRepository.CreatePlant(plant);

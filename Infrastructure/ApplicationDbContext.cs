@@ -45,6 +45,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         modelBuilder.Entity<Requirements>()
             .HasKey(e => e.ConditionsId);
+        
+        modelBuilder.Entity<ConditionsLog>()
+            .HasKey(e => e.ConditionsId);
 
         base.OnModelCreating(modelBuilder);
     }

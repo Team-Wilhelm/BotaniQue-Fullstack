@@ -2,7 +2,6 @@ using System.Reflection;
 using System.Text.Json;
 using api.Events.Auth.Client;
 using api.Extensions;
-using api.Options;
 using Core.Options;
 using Core.Services;
 using Fleck;
@@ -135,6 +134,10 @@ public static class Startup
                 }
             };
         });
+        
+        // Connect and subscribe to MQTT
+        var mqttSubscriberService = app.Services.GetRequiredService<MqttSubscriberService>();
+        _ = mqttSubscriberService.SubscribeAsync();
 
         return app;
     }
