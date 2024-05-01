@@ -4,5 +4,5 @@ namespace api.Events.ImageUpload;
 
 public class ServerSendsImageWithoutBackground : BaseDto
 {
-    public byte[] Image { get; set; } = null!;
+    public required string Base64Image { get; set; } = null!;
 }

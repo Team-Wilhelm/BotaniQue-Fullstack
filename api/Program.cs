@@ -19,7 +19,7 @@ namespace api;
 
 public static class Startup
 {
-    private static readonly List<string> _publicEvents =
+    private static readonly List<string> PublicEvents =
     [
         nameof(ClientWantsToLogIn),
         nameof(ClientWantsToLogOut),
@@ -142,7 +142,7 @@ public static class Startup
                 {
                     // Check if the message contains a JWT token and if it is valid
                     var dto = JsonSerializer.Deserialize<BaseDtoWithJwt>(message, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    if (dto is not null && _publicEvents.Contains(dto.eventType) == false)
+                    if (dto is not null && PublicEvents.Contains(dto.eventType) == false)
                     {
                         if (dto.Jwt is null)
                         {

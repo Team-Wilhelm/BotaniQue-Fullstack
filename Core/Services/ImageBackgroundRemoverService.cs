@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using Core.Options;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Shared.Exceptions;
@@ -10,25 +11,17 @@ namespace Core.Services;
 
 public class ImageBackgroundRemoverService(IOptions<AzureVisionOptions> options)
 {
-    public async Task<byte[]> RemoveBackground(string imageUrl)
+    public async Task<byte[]> RemoveBackground(byte[] imageBytes)
     {
         var request = options.Value.BaseUrl + options.Value.RemoveBackgroundEndpoint;
 
         var client = new HttpClient();
         client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", $"{options.Value.Key}");
 
-        var requestBody = new
-        {
-            url = imageUrl
-        };
-        
-        // Request body
-        byte[] byteData = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(requestBody));
-
         HttpResponseMessage response;
-        using (var content = new ByteArrayContent(byteData))
+        using (var content = new ByteArrayContent(imageBytes))
         {
-            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
             response = await client.PostAsync(request, content);
         }
 
@@ -38,12 +31,10 @@ public class ImageBackgroundRemoverService(IOptions<AzureVisionOptions> options)
         }
         
         // The response is image/png
-        var imageBytes = await response.Content.ReadAsByteArrayAsync();
+        var removedBgImageBytes = await response.Content.ReadAsByteArrayAsync();
         var filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), $"{Guid.NewGuid()}.png");
-        await File.WriteAllBytesAsync(filePath, imageBytes);
+        await File.WriteAllBytesAsync(filePath, removedBgImageBytes);
         
-        // TODO: Save to blob storage
-        
-        return imageBytes;
+        return removedBgImageBytes;
     }
 }

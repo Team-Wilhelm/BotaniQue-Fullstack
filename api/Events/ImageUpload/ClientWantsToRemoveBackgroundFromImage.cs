@@ -3,29 +3,28 @@ using Core.Services;
 using Fleck;
 using lib;
 using Shared.Models;
+using Shared.Models.Exceptions;
 
 namespace api.Events.ImageUpload;
 
 public class ClientWantsToRemoveBackgroundFromImageDto : BaseDtoWithJwt
 {
-    public required string ImageUrl { get; set; }
+    public required string Base64Image { get; set; }
 }
 
 public class ClientWantsToRemoveBackgroundFromImage(ImageBackgroundRemoverService backgroundRemoverService) : BaseEventHandler<ClientWantsToRemoveBackgroundFromImageDto>
 {
-    private string[] allowedExtensions = [".jpg", ".jpeg", ".png"];
-    
     public override async Task Handle(ClientWantsToRemoveBackgroundFromImageDto dto, IWebSocketConnection socket)
     {
-        /*if (image.Length == 0) throw new InvalidFileFormatException("File is empty.");
+        byte[] imageBytes = Convert.FromBase64String(dto.Base64Image);
         
-        var extension = Path.GetExtension(image.FileName);
-        if (!allowedExtensions.Contains(extension)) throw new InvalidFileFormatException("Invalid file format. Please upload a valid file.");*/
+        if (imageBytes.Length == 0) throw new InvalidFileFormatException("File is empty.");
         
-        var removedBackgroundImage = await backgroundRemoverService.RemoveBackground(dto.ImageUrl);
+        var removedBackgroundImage = await backgroundRemoverService.RemoveBackground(imageBytes);
+        var removedBackgroundImageBase64 = Convert.ToBase64String(removedBackgroundImage);
         socket.SendDto(new ServerSendsImageWithoutBackground
         {
-            Image = removedBackgroundImage
+            Base64Image = removedBackgroundImageBase64
         });
     }
 }
