@@ -1,48 +1,18 @@
+name: Tests
+
 on:
   pull_request:
     branches:
       - main
+  push:
+    branches:
+      - tests # revert once tests are done
   workflow_dispatch:
     
 jobs:
   tests:
     runs-on: ubuntu-latest
-
-    # Service containers to run with `container-job`
-    services:
-      # Label used to access the service container
-      postgres:
-        # Docker Hub image
-        image: postgres
-        # Provide the password for postgres
-        env:
-          POSTGRES_PASSWORD: postgres
-        # Set health checks to wait until postgres has started
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
-      - name: Start PostgreSQL on Ubuntu
-        run: |
-          sudo systemctl start postgresql.service
-          pg_isready
-
-      - name: Create additional user
-        run: |
-          sudo -u postgres psql --command="CREATE USER testuser PASSWORD 'password'" --command="\du"
-
-      - name: Create additional database
-        run: |
-          sudo -u postgres createdb TestDatabase --owner=testuser
-          PGPASSWORD=password
-
-      - name: Enable uuid-ossp extension
-        run: |
-          echo "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";" | sudo -u postgres psql TestDatabase
-
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -51,11 +21,21 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Test
+      - name: Run tests
         env:
-          BotaniqueDb: Host=localhost;Database=TestDatabase;Username=testuser;Password=password
+          CI: true
+          JWT_KEY: ${{ secrets.JWT_KEY }}
+          JWT_ISSUER: ${{ secrets.JWT_ISSUER }}
+          JWT_AUDIENCE: ${{ secrets.JWT_AUDIENCE }}
+          JWT_EXPIRY: ${{ secrets.JWT_EXPIRY }}
+          
+          MQTT_BROKER: ${{ secrets.MQTT_BROKER }}
+          MQTT_PORT: ${{ secrets.MQTT_PORT }}
+          MQTT_USERNAME: ${{ secrets.MQTT_USERNAME }}
+          MQTT_CLIENT_ID: ${{ secrets.MQTT_CLIENT_ID }}
+          MQTT_SUBSCRIBE_TOPIC: ${{ secrets.MQTT_SUBSCRIBE_TOPIC }}
+          MQTT_PUBLISH_TOPIC: ${{ secrets.MQTT_PUBLISH_TOPIC }}
+          
+          AZURE_VISION_KEY: ${{ secrets.AZURE_VISION_KEY }}
+          AZURE_VISION_ENDPOINT: ${{ secrets.AZURE_VISION_ENDPOINT }}
         run: cd Tests && dotnet test
-
-
-
-

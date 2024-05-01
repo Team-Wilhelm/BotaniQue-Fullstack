@@ -22,6 +22,7 @@ public static class GlobalExceptionHandler
                 NotFoundException => new ServerRespondsNotFound { Error = ex.Message },
                 NoAccessException => new ServerRespondsNotAuthorized { Error = ex.Message },
                 RegisterDeviceException => new ServerRespondsRegisterDevice { Error = ex.Message },
+                NotAuthenticatedException => new ServerRespondsNotAuthenticated { Error = ex.Message },
                 _ => new ServerSendsErrorMessage { Error = message ?? ex.Message }
             };
         else

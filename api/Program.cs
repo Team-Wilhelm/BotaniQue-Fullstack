@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Text.Json;
-using AsyncApi.Net.Generator;
-using AsyncApi.Net.Generator.AsyncApiSchema.v2;
+using api.Events.Auth.Client;
+using api.Extensions;
 using Core.Options;
 using Core.Services;
 using Fleck;
@@ -13,11 +13,19 @@ using Serilog;
 using Shared.Dtos.FromClient;
 using Shared.Models;
 using Shared.Models.Exceptions;
+using Testcontainers.PostgreSql;
 
 namespace api;
 
 public static class Startup
 {
+    private static readonly List<string> _publicEvents =
+    [
+        nameof(ClientWantsToLogIn),
+        nameof(ClientWantsToLogOut),
+        nameof(ClientWantsToSignUp)
+    ];
+    
     public static async Task Main(string[] args)
     {
         var app = await StartApi(args);
@@ -33,40 +41,72 @@ public static class Startup
 
         var builder = WebApplication.CreateBuilder(args);
 
-        var connectionString = builder.Configuration.GetConnectionString("BotaniqueDb");
-        builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
+        if (args.Contains("ENVIRONMENT=Testing"))
         {
-            connectionString ??= Environment.GetEnvironmentVariable("BotaniqueDb");
-            options.UseNpgsql(connectionString ?? throw new Exception("Connection string cannot be null"));
-        });
+            var dbContainer = 
+                new PostgreSqlBuilder()
+                .WithDatabase("botanique")
+                .WithUsername("root")
+                .WithPassword("password")
+                .Build();
+
+            await dbContainer.StartAsync();
+            
+            var connectionString = dbContainer.GetConnectionString() + ";Include Error Detail=true;";
+            builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
+            {
+                options.UseNpgsql(connectionString ?? throw new Exception("Connection string cannot be null"));
+            });
+        }
+
+        else
+        {
+            var connectionString = builder.Configuration.GetConnectionString("BotaniqueDb");
+            builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
+            {
+                connectionString ??= Environment.GetEnvironmentVariable("BotaniqueDb");
+                options.UseNpgsql(connectionString ?? throw new Exception("Connection string cannot be null"));
+            });
+        }
 
         builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JWT"));
         builder.Services.Configure<MqttOptions>(builder.Configuration.GetSection("MQTT"));
-        builder.Services.AddSingleton<WebSocketConnectionService>();
-        builder.Services.AddSingleton<JwtService>();
-        builder.Services.AddSingleton<UserRepository>();
-        builder.Services.AddSingleton<PlantRepository>();
-        builder.Services.AddSingleton<RequirementsRepository>();
-        builder.Services.AddSingleton<ConditionsLogsRepository>();
-        builder.Services.AddSingleton<UserService>();
-        builder.Services.AddSingleton<PlantService>();
-        builder.Services.AddSingleton<RequirementService>();
-        builder.Services.AddSingleton<ConditionsLogsService>();
-        builder.Services.AddSingleton<MqttSubscriberService>();
-        builder.Services.AddSingleton<MqttPublisherService>();
-        // TODO: add repositories
-
-        builder.Services.AddAsyncApiSchemaGeneration(o =>
+        builder.Services.Configure<AzureVisionOptions>(builder.Configuration.GetSection("AzureVision"));
+        
+        // On ci options are stored as repository secrets
+        if (args.Contains("ENVIRONMENT=Testing") && Environment.GetEnvironmentVariable("CI") is not null)
         {
-            o.AssemblyMarkerTypes = new[] { typeof(BaseDto) }; // add assembly marker
-            o.AsyncApi = new AsyncApiDocument { Info = new Info { Title = "BotaniQue" } };
-        });
-
+            builder.Services.Configure<JwtOptions>(options =>
+            {
+                options.Key = Environment.GetEnvironmentVariable("JWT_KEY") ?? throw new Exception("JWT key is missing");
+                options.Issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? throw new Exception("JWT issuer is missing");
+                options.Audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? throw new Exception("JWT audience is missing");
+                options.ExpirationMinutes = int.Parse(Environment.GetEnvironmentVariable("JWT_EXPIRY") ?? throw new Exception("JWT expiration minutes is missing"));
+            });
+            
+            builder.Services.Configure<MqttOptions>(options =>
+            {
+                options.Server = Environment.GetEnvironmentVariable("MQTT_BROKER") ?? throw new Exception("MQTT broker is missing");
+                options.Port = int.Parse(Environment.GetEnvironmentVariable("MQTT_PORT") ?? throw new Exception("MQTT port is missing"));
+                options.ClientId = Environment.GetEnvironmentVariable("MQTT_CLIENT_ID") ?? throw new Exception("MQTT client id is missing");
+                options.Username = Environment.GetEnvironmentVariable("MQTT_USERNAME") ?? throw new Exception("MQTT username is missing");
+                options.SubscribeTopic = Environment.GetEnvironmentVariable("MQTT_SUBSCRIBE_TOPIC") ?? throw new Exception("MQTT subscribe topic is missing");
+                options.PublishTopic = Environment.GetEnvironmentVariable("MQTT_PUBLISH_TOPIC") ?? throw new Exception("MQTT publish topic is missing");
+            });
+            
+            builder.Services.Configure<AzureVisionOptions>(options =>
+            {
+                options.Endpoint = Environment.GetEnvironmentVariable("AZURE_VISION_ENDPOINT") ?? throw new Exception("Azure vision endpoint is missing");
+                options.Key = Environment.GetEnvironmentVariable("AZURE_VISION_KEY") ?? throw new Exception("Azure vision key is missing");
+            });
+        }
+        
+        
+        builder.Services.AddServicesAndRepositories();
+        
         var services = builder.FindAndInjectClientEventHandlers(Assembly.GetExecutingAssembly());
+        
         var app = builder.Build();
-
-        app.MapAsyncApiDocuments();
-        app.MapAsyncApiUi();
 
         if (args.Contains("--db-init"))
         {
@@ -85,10 +125,9 @@ public static class Startup
             });
         }
 
-        // builder.WebHost.UseUrls("http://*:9999");
-
         var port = Environment.GetEnvironmentVariable("PORT") ?? "8181";
         var wsServer = new WebSocketServer($"ws://0.0.0.0:{port}");
+        // builder.WebHost.UseUrls("http://*:9999");
 
         wsServer.Start(socket =>
         {
@@ -100,9 +139,15 @@ public static class Startup
                 try
                 {
                     // Check if the message contains a JWT token and if it is valid
-                    BaseDtoWithJwt? dto = JsonSerializer.Deserialize<BaseDtoWithJwt>(message, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
-                    if (dto?.Jwt != null)
+                    var dto = JsonSerializer.Deserialize<BaseDtoWithJwt>(message, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    if (dto is not null && _publicEvents.Contains(dto.eventType) == false)
                     {
+                        Console.WriteLine("Checking JWT token");
+                        if (dto.Jwt is null)
+                        {
+                            throw new NotAuthenticatedException("JWT token is missing. Please log in.");
+                        }
+                        
                         var jwtService = app.Services.GetRequiredService<JwtService>();
                         var jwtValid = jwtService.IsJwtTokenValid(dto.Jwt);
                         if (!jwtValid)

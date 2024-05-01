@@ -3,7 +3,7 @@ using Shared.Models;
 
 namespace api.Events.PlantEvents.Server;
 
-public class ServerSendsAllPlantsDto: BaseDto
+public class ServerSendsAllPlants: BaseDto
 {
     public List<Plant> Plants { get; set; }
 }
