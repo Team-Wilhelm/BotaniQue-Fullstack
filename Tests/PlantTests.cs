@@ -43,7 +43,7 @@ public class PlantTests : TestBase
             UserEmail = email,
             CollectionId = null,
             Nickname = "Nickname",
-            ImageUrl = "https://realurl.com",
+            Base64Image = "https://realurl.com",
             CreateRequirementsDto = new CreateRequirementsDto
             {
                 SoilMoistureLevel = RequirementLevel.Low,

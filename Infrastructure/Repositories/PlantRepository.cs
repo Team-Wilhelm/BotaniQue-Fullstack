@@ -66,7 +66,7 @@ public class PlantRepository (IDbContextFactory<ApplicationDbContext> dbContextF
         return plant.PlantId;
     }
     
-    public async Task<Conditions> GetRequirementsForPlant(Guid plantId)
+    public async Task<Requirements> GetRequirementsForPlant(Guid plantId)
     {
         await using var context = await dbContextFactory.CreateDbContextAsync();
         var plant = await context.Plants

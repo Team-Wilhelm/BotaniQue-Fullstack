@@ -12,6 +12,7 @@ public class PlantService (PlantRepository plantRepository, RequirementService r
     private const string DefaultImageUrl =
         "https://www.creativefabrica.com/wp-content/uploads/2022/01/20/Animated-Plant-Graphics-23785833-1.jpg";
     
+    // TODO: decode base 64 image and save it to blob storage
     public async Task<Plant> CreatePlant(CreatePlantDto createPlantDto)
     {
         if (string.IsNullOrEmpty(createPlantDto.Nickname))
@@ -26,7 +27,7 @@ public class PlantService (PlantRepository plantRepository, RequirementService r
             UserEmail = createPlantDto.UserEmail,
             // CollectionId = Guid.Empty, // TODO: fix when collections are implemented
             Nickname = createPlantDto.Nickname,
-            ImageUrl = createPlantDto.ImageUrl ?? DefaultImageUrl,
+            ImageUrl = createPlantDto.Base64Image ?? DefaultImageUrl,
             DeviceId = createPlantDto.DeviceId
         };
         
@@ -35,7 +36,7 @@ public class PlantService (PlantRepository plantRepository, RequirementService r
         // Create requirements for the plant to crete a link between the two
         var requirementsDto = createPlantDto.CreateRequirementsDto;
         requirementsDto.PlantId = plant.PlantId;
-        await requirementService.CreateRequirements(requirementsDto);
+        plant.Requirements =  await requirementService.CreateRequirements(requirementsDto);
         
         return plant;
     }

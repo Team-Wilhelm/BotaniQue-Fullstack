@@ -2,15 +2,23 @@ using Shared.Dtos.FromClient.Requirements;
 
 namespace Shared.Models.Information;
 
-public class Requirements : Conditions
+public class Requirements
 {
+    public Guid RequirementsId { get; set; }
+    public Guid PlantId { get; set; }
+    public RequirementLevel SoilMoistureLevel { get; set; }
+    public RequirementLevel LightLevel { get; set; }
+    public RequirementLevel TemperatureLevel { get; set; }
+    public RequirementLevel HumidityLevel { get; set; }
+   
     public Requirements()
     {
+        
     }
     
     public Requirements(CreateRequirementsDto createRequirementsDto)
     {
-        ConditionsId = Guid.NewGuid();
+        RequirementsId = Guid.NewGuid();
         PlantId = createRequirementsDto.PlantId!.Value; // plantID should be assigned to the dto before using this constructor
         SoilMoistureLevel = createRequirementsDto.SoilMoistureLevel;
         LightLevel = createRequirementsDto.LightLevel;
@@ -20,7 +28,7 @@ public class Requirements : Conditions
     
     public Requirements(UpdateRequirementDto updateRequirementDto, Guid plantId)
     {
-        ConditionsId = updateRequirementDto.ConditionsId;
+        RequirementsId = updateRequirementDto.RequirementsId;
         PlantId = plantId;
         SoilMoistureLevel = updateRequirementDto.SoilMoistureLevel;
         LightLevel = updateRequirementDto.LightLevel;

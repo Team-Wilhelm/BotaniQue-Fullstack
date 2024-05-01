@@ -9,6 +9,6 @@ public class CreatePlantDto
     public Guid? CollectionId { get; set; }
     public string? DeviceId { get; set; }
     [MaxLength(50)] public string? Nickname { get; set; }
-    public string? ImageUrl { get; set; }
+    public string? Base64Image { get; set; }
     public CreateRequirementsDto CreateRequirementsDto { get; set; } = null!;
 }

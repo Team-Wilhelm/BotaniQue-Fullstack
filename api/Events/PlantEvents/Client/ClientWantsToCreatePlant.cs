@@ -22,10 +22,10 @@ public class ClientWantsToCreatePlant(PlantService plantService): BaseEventHandl
     {
         var createPlantDto = dto.CreatePlantDto;
         var plant = await plantService.CreatePlant(createPlantDto);
-        var serverSendsPlant = new ServerSendsPlant
+        var serverCreatesNewPlant = new ServerCreatesNewPlant
         {
             Plant = plant
         };
-        socket.SendDto(serverSendsPlant);
+        socket.SendDto(serverCreatesNewPlant);
     }
 }
