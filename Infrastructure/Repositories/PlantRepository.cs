@@ -1,8 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Shared.Dtos.FromClient.Plant;
-using Shared.Dtos.Plant;
+using Shared.Exceptions;
 using Shared.Models;
-using Shared.Models.Exceptions;
 using Shared.Models.Information;
 
 namespace Infrastructure.Repositories;

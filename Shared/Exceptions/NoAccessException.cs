@@ -1,6 +1,4 @@
-using Shared.Exceptions;
-
-namespace Shared.Models.Exceptions;
+namespace Shared.Exceptions;
 
 public class NoAccessException : AppException
 {

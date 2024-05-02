@@ -2,7 +2,7 @@ using System.Collections;
 using System.ComponentModel.DataAnnotations;
 using Fleck;
 using lib;
-using Shared.Models.Exceptions;
+using Shared.Exceptions;
 
 namespace api.EventFilters;
 

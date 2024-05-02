@@ -5,7 +5,6 @@ using Core.Services;
 using Fleck;
 using lib;
 using Shared.Dtos.FromClient.Plant;
-using Shared.Dtos.Plant;
 using Shared.Models;
 
 namespace api.Events.PlantEvents.Client;

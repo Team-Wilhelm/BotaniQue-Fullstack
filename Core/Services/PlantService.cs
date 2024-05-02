@@ -1,14 +1,10 @@
-﻿using Azure.Identity;
-using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Models;
+﻿using Azure.Storage.Blobs;
 using Core.Options;
 using Infrastructure.Repositories;
 using Microsoft.Extensions.Options;
 using Shared.Dtos.FromClient.Plant;
-using Shared.Dtos.Plant;
+using Shared.Exceptions;
 using Shared.Models;
-using Shared.Models.Exceptions;
-using Shared.Models.Information;
 
 namespace Core.Services;
 
@@ -17,10 +13,6 @@ public class PlantService(
     RequirementService requirementService,
     IOptions<AzureBlobStorageOptions> azureBlobStorageOptions)
 {
-    private const string DefaultImageUrl =
-        "https://www.creativefabrica.com/wp-content/uploads/2022/01/20/Animated-Plant-Graphics-23785833-1.jpg";
-
-    // TODO: decode base 64 image and save it to blob storage
     public async Task<Plant> CreatePlant(CreatePlantDto createPlantDto)
     {
         if (string.IsNullOrEmpty(createPlantDto.Nickname))
@@ -41,7 +33,7 @@ public class PlantService(
             UserEmail = createPlantDto.UserEmail,
             // CollectionId = Guid.Empty, // TODO: fix when collections are implemented
             Nickname = createPlantDto.Nickname,
-            ImageUrl = ímageUrl ?? DefaultImageUrl,
+            ImageUrl = ímageUrl ?? "",
             DeviceId = createPlantDto.DeviceId
         };
         
@@ -54,14 +46,33 @@ public class PlantService(
         return plant;
     }
 
-    private async Task<string> SaveImageToBlobStorage(string base64Image, string userEmail)
+    private async Task<string> SaveImageToBlobStorage(string base64Image, string userEmail, string? blobUrl = null)
     {
         var imageBytes = Convert.FromBase64String(base64Image);
-        var blobUrl = userEmail + "_" + Guid.NewGuid();
+        blobUrl ??= userEmail + "_" + Guid.NewGuid();
         var blobClient = new BlobClient(azureBlobStorageOptions.Value.ConnectionString, azureBlobStorageOptions.Value.PlantImagesContainer, blobUrl);
         var binaryData = new BinaryData(imageBytes);
         await blobClient.UploadAsync(binaryData, true);
         return blobClient.Uri.ToString();
+    }
+    
+    private async Task<bool> DeleteImageFromBlobStorage(string imageUrl)
+    {
+        var blobClient = new BlobClient(new Uri(imageUrl));
+        return await blobClient.DeleteIfExistsAsync();
+    }
+    
+    private async Task<string> GetImageFromBlobStorage(string imageUrl)
+    {
+        if (string.IsNullOrEmpty(imageUrl)) return "";
+        
+        var blobClient = new BlobClient(new Uri(imageUrl));
+        if (await blobClient.ExistsAsync() == false) throw new NotFoundException("Image not found");
+        
+        using var memoryStream = new MemoryStream();
+        await blobClient.DownloadToAsync(memoryStream);
+        var imageBytes = memoryStream.ToArray();
+        return Convert.ToBase64String(imageBytes);
     }
 
     public async Task<Plant> GetPlantById(Guid id, string requesterEmail)
@@ -87,14 +98,20 @@ public class PlantService(
             requirements = await requirementService.UpdateRequirements(updatePlantDto.UpdateRequirementDto, plant.PlantId);
         }
         
+        var imageUrl = plant.ImageUrl;
+        if (updatePlantDto.Base64Image is not null)
+        {
+          imageUrl = await SaveImageToBlobStorage(updatePlantDto.Base64Image, requesterEmail, plant.ImageUrl);
+        }
+        
         // Update the plant
         plant = new Plant
         {
             PlantId = updatePlantDto.PlantId,
             UserEmail = plant.UserEmail,
             CollectionId = updatePlantDto.CollectionId,
-            Nickname = updatePlantDto.Nickname,
-            ImageUrl = updatePlantDto.ImageUrl ?? DefaultImageUrl,
+            Nickname = updatePlantDto.Nickname ?? plant.Nickname,
+            ImageUrl = imageUrl,
             Requirements = requirements,
             ConditionsLogs = plant.ConditionsLogs
         };

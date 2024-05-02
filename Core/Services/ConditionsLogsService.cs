@@ -1,6 +1,6 @@
 ﻿using Infrastructure.Repositories;
 using Shared.Dtos;
-using Shared.Models.Exceptions;
+using Shared.Exceptions;
 using Shared.Models.Information;
 
 namespace Core.Services;

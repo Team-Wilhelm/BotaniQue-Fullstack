@@ -2,8 +2,8 @@ using api.Extensions;
 using Core.Services;
 using Fleck;
 using lib;
+using Shared.Exceptions;
 using Shared.Models;
-using Shared.Models.Exceptions;
 
 namespace api.Events.ImageUpload;
 

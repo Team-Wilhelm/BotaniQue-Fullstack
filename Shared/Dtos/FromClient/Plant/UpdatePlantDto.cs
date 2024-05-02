@@ -1,8 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Shared.Dtos.FromClient.Requirements;
-using Shared.Models.Information;
 
-namespace Shared.Dtos.Plant;
+namespace Shared.Dtos.FromClient.Plant;
 
 public class UpdatePlantDto
 {
@@ -10,6 +9,6 @@ public class UpdatePlantDto
     public Guid? CollectionId { get; set; }
     public string? DeviceId { get; set; }
     [MaxLength(50)] public string? Nickname { get; set; }
-    public string? ImageUrl { get; set; }
+    public string? Base64Image { get; set; } // should be null if the image should not be updated
     public UpdateRequirementDto? UpdateRequirementDto { get; set; } 
 }

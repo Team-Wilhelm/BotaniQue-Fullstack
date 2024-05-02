@@ -11,8 +11,9 @@ using lib;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Shared.Dtos.FromClient;
+using Shared.Dtos.FromClient.Identity;
+using Shared.Exceptions;
 using Shared.Models;
-using Shared.Models.Exceptions;
 using Testcontainers.PostgreSql;
 
 namespace api;

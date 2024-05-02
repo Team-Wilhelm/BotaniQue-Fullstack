@@ -5,7 +5,6 @@ using api.Extensions;
 using Fleck;
 using Serilog;
 using Shared.Exceptions;
-using Shared.Models.Exceptions;
 
 namespace api;
 

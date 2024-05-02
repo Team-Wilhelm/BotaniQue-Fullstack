@@ -1,7 +1,7 @@
 using Infrastructure.Repositories;
 using Shared.Dtos.FromClient;
 using Shared.Dtos.FromClient.Identity;
-using Shared.Models.Exceptions;
+using Shared.Exceptions;
 using Shared.Models.Identity;
 
 namespace Core.Services;
