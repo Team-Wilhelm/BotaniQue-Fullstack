@@ -1,4 +1,4 @@
-﻿namespace Shared.Models.Exceptions;
+﻿namespace Shared.Exceptions;
 
 public class NotFoundException: AppException
 {

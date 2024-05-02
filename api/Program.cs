@@ -11,15 +11,16 @@ using lib;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Shared.Dtos.FromClient;
+using Shared.Dtos.FromClient.Identity;
+using Shared.Exceptions;
 using Shared.Models;
-using Shared.Models.Exceptions;
 using Testcontainers.PostgreSql;
 
 namespace api;
 
 public static class Startup
 {
-    private static readonly List<string> _publicEvents =
+    private static readonly List<string> PublicEvents =
     [
         nameof(ClientWantsToLogIn),
         nameof(ClientWantsToLogOut),
@@ -41,7 +42,7 @@ public static class Startup
 
         var builder = WebApplication.CreateBuilder(args);
 
-        if (args.Contains("ENVIRONMENT=Testing"))
+        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Testing")
         {
             var dbContainer = 
                 new PostgreSqlBuilder()
@@ -72,9 +73,11 @@ public static class Startup
         builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JWT"));
         builder.Services.Configure<MqttOptions>(builder.Configuration.GetSection("MQTT"));
         builder.Services.Configure<AzureVisionOptions>(builder.Configuration.GetSection("AzureVision"));
+        builder.Services.Configure<AzureBlobStorageOptions>(builder.Configuration.GetSection("AzureBlob"));
+        
         
         // On ci options are stored as repository secrets
-        if (args.Contains("ENVIRONMENT=Testing") && Environment.GetEnvironmentVariable("CI") is not null)
+        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Testing" && Environment.GetEnvironmentVariable("CI") is not null)
         {
             builder.Services.Configure<JwtOptions>(options =>
             {
@@ -96,11 +99,18 @@ public static class Startup
             
             builder.Services.Configure<AzureVisionOptions>(options =>
             {
-                options.Endpoint = Environment.GetEnvironmentVariable("AZURE_VISION_ENDPOINT") ?? throw new Exception("Azure vision endpoint is missing");
+                options.BaseUrl = Environment.GetEnvironmentVariable("AZURE_VISION_BASE_URL") ?? throw new Exception("Azure vision endpoint is missing");
                 options.Key = Environment.GetEnvironmentVariable("AZURE_VISION_KEY") ?? throw new Exception("Azure vision key is missing");
+                options.RemoveBackgroundEndpoint = Environment.GetEnvironmentVariable("AZURE_VISION_REMOVE_BACKGROUND_ENDPOINT") ?? throw new Exception("Azure vision remove background endpoint is missing");
+            });
+            
+            builder.Services.Configure<AzureBlobStorageOptions>(options =>
+            {
+                options.ConnectionString = Environment.GetEnvironmentVariable("AZURE_BLOB_CONNECTION_STRING") ?? throw new Exception("Azure blob connection string is missing");
+                options.PlantImagesContainer = Environment.GetEnvironmentVariable("AZURE_BLOB_PLANT_IMAGES_CONTAINERE") ?? throw new Exception("Azure blob container name is missing");
+                options.UserProfileImagesContainer = Environment.GetEnvironmentVariable("AZURE_BLOB_USER_PROFILE_IMAGES_CONTAINER") ?? throw new Exception("Azure blob container name is missing");
             });
         }
-        
         
         builder.Services.AddServicesAndRepositories();
         
@@ -140,9 +150,8 @@ public static class Startup
                 {
                     // Check if the message contains a JWT token and if it is valid
                     var dto = JsonSerializer.Deserialize<BaseDtoWithJwt>(message, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    if (dto is not null && _publicEvents.Contains(dto.eventType) == false)
+                    if (dto is not null && PublicEvents.Contains(dto.eventType) == false)
                     {
-                        Console.WriteLine("Checking JWT token");
                         if (dto.Jwt is null)
                         {
                             throw new NotAuthenticatedException("JWT token is missing. Please log in.");

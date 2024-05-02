@@ -5,6 +5,7 @@ using Core.Services;
 using Fleck;
 using lib;
 using Shared.Dtos.FromClient;
+using Shared.Dtos.FromClient.Identity;
 
 namespace api.Events.Auth.Client;
 

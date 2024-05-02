@@ -1,24 +1,32 @@
-﻿using Infrastructure.Repositories;
+﻿using Azure.Storage.Blobs;
+using Core.Options;
+using Core.Services.External.BlobStorage;
+using Infrastructure.Repositories;
+using Microsoft.Extensions.Options;
 using Shared.Dtos.FromClient.Plant;
-using Shared.Dtos.Plant;
+using Shared.Exceptions;
 using Shared.Models;
-using Shared.Models.Exceptions;
-using Shared.Models.Information;
 
 namespace Core.Services;
 
-public class PlantService (PlantRepository plantRepository, RequirementService requirementService)
+public class PlantService(
+    PlantRepository plantRepository,
+    RequirementService requirementService,
+    IBlobStorageService blobStorageService)
 {
-    private const string DefaultImageUrl =
-        "https://www.creativefabrica.com/wp-content/uploads/2022/01/20/Animated-Plant-Graphics-23785833-1.jpg";
-    
     public async Task<Plant> CreatePlant(CreatePlantDto createPlantDto)
     {
         if (string.IsNullOrEmpty(createPlantDto.Nickname))
         {
             createPlantDto.Nickname = GenerateRandomNickname();
         }
-         
+
+        string? ímageUrl = null;
+        if (createPlantDto.Base64Image is not null)
+        {
+            ímageUrl = await blobStorageService.SaveImageToBlobStorage(createPlantDto.Base64Image, createPlantDto.UserEmail);
+        }
+        
         // Insert plant first to get the plantId
         var plant = new Plant
         {
@@ -26,7 +34,7 @@ public class PlantService (PlantRepository plantRepository, RequirementService r
             UserEmail = createPlantDto.UserEmail,
             // CollectionId = Guid.Empty, // TODO: fix when collections are implemented
             Nickname = createPlantDto.Nickname,
-            ImageUrl = createPlantDto.ImageUrl ?? DefaultImageUrl,
+            ImageUrl = ímageUrl ?? "",
             DeviceId = createPlantDto.DeviceId
         };
         
@@ -35,11 +43,10 @@ public class PlantService (PlantRepository plantRepository, RequirementService r
         // Create requirements for the plant to crete a link between the two
         var requirementsDto = createPlantDto.CreateRequirementsDto;
         requirementsDto.PlantId = plant.PlantId;
-        await requirementService.CreateRequirements(requirementsDto);
-        
+        plant.Requirements =  await requirementService.CreateRequirements(requirementsDto);
         return plant;
     }
-    
+
     public async Task<Plant> GetPlantById(Guid id, string requesterEmail)
     {
         var plant = await VerifyPlantExistsAndUserHasAccess(id, requesterEmail);
@@ -63,14 +70,20 @@ public class PlantService (PlantRepository plantRepository, RequirementService r
             requirements = await requirementService.UpdateRequirements(updatePlantDto.UpdateRequirementDto, plant.PlantId);
         }
         
+        var imageUrl = plant.ImageUrl;
+        if (updatePlantDto.Base64Image is not null)
+        {
+          imageUrl = await blobStorageService.SaveImageToBlobStorage(updatePlantDto.Base64Image, requesterEmail, plant.ImageUrl);
+        }
+        
         // Update the plant
         plant = new Plant
         {
             PlantId = updatePlantDto.PlantId,
             UserEmail = plant.UserEmail,
             CollectionId = updatePlantDto.CollectionId,
-            Nickname = updatePlantDto.Nickname,
-            ImageUrl = updatePlantDto.ImageUrl ?? DefaultImageUrl,
+            Nickname = updatePlantDto.Nickname ?? plant.Nickname,
+            ImageUrl = imageUrl,
             Requirements = requirements,
             ConditionsLogs = plant.ConditionsLogs
         };

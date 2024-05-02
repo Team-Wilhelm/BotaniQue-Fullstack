@@ -1,9 +1,10 @@
 using api.Events.Auth.Server;
 using api.Events.Global;
+using api.Events.ImageUpload;
 using api.Extensions;
 using Fleck;
 using Serilog;
-using Shared.Models.Exceptions;
+using Shared.Exceptions;
 
 namespace api;
 
@@ -23,6 +24,7 @@ public static class GlobalExceptionHandler
                 NoAccessException => new ServerRespondsNotAuthorized { Error = ex.Message },
                 RegisterDeviceException => new ServerRespondsRegisterDevice { Error = ex.Message },
                 NotAuthenticatedException => new ServerRespondsNotAuthenticated { Error = ex.Message },
+                InvalidFileFormatException => new ServerRejectsInvalidFile { Error = ex.Message },
                 _ => new ServerSendsErrorMessage { Error = message ?? ex.Message }
             };
         else

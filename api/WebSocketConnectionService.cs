@@ -1,5 +1,5 @@
 using Fleck;
-using Shared.Models.Exceptions;
+using Shared.Exceptions;
 using Shared.Models.Identity;
 
 namespace api;

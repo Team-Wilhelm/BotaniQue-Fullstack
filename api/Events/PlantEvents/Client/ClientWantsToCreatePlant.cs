@@ -5,7 +5,6 @@ using Core.Services;
 using Fleck;
 using lib;
 using Shared.Dtos.FromClient.Plant;
-using Shared.Dtos.Plant;
 using Shared.Models;
 
 namespace api.Events.PlantEvents.Client;
@@ -22,10 +21,10 @@ public class ClientWantsToCreatePlant(PlantService plantService): BaseEventHandl
     {
         var createPlantDto = dto.CreatePlantDto;
         var plant = await plantService.CreatePlant(createPlantDto);
-        var serverSendsPlant = new ServerSendsPlant
+        var serverCreatesNewPlant = new ServerCreatesNewPlant
         {
             Plant = plant
         };
-        socket.SendDto(serverSendsPlant);
+        socket.SendDto(serverCreatesNewPlant);
     }
 }

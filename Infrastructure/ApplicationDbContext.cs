@@ -44,7 +44,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasForeignKey<Requirements>(e => e.PlantId);
 
         modelBuilder.Entity<Requirements>()
-            .HasKey(e => e.ConditionsId);
+            .HasKey(e => e.RequirementsId);
         
         modelBuilder.Entity<ConditionsLog>()
             .HasKey(e => e.ConditionsId);

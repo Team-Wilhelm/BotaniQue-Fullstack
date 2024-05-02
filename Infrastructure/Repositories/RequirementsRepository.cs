@@ -8,7 +8,7 @@ public class RequirementsRepository(IDbContextFactory<ApplicationDbContext> dbCo
     public async Task<Requirements?> GetRequirements(Guid requirementsId)
     {
         await using var context = await dbContextFactory.CreateDbContextAsync();
-        return await context.Requirements.FirstOrDefaultAsync(r => r.ConditionsId == requirementsId);
+        return await context.Requirements.FirstOrDefaultAsync(r => r.RequirementsId == requirementsId);
     }
     
     public async Task<Requirements> CreateRequirements(Requirements requirements)

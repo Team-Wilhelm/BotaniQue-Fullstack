@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Shared.Dtos.FromClient;
+namespace Shared.Dtos.FromClient.Identity;
 
 public class RegisterUserDto
 {

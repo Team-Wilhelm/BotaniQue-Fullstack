@@ -1,7 +1,6 @@
 using System.Text;
 using System.Text.Json;
 using Core.Options;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 using MQTTnet;
 using MQTTnet.Client;

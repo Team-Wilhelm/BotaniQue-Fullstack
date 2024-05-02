@@ -1,8 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Shared.Dtos.FromClient.Plant;
-using Shared.Dtos.Plant;
+using Shared.Exceptions;
 using Shared.Models;
-using Shared.Models.Exceptions;
 using Shared.Models.Information;
 
 namespace Infrastructure.Repositories;
@@ -66,7 +65,7 @@ public class PlantRepository (IDbContextFactory<ApplicationDbContext> dbContextF
         return plant.PlantId;
     }
     
-    public async Task<Conditions> GetRequirementsForPlant(Guid plantId)
+    public async Task<Requirements> GetRequirementsForPlant(Guid plantId)
     {
         await using var context = await dbContextFactory.CreateDbContextAsync();
         var plant = await context.Plants

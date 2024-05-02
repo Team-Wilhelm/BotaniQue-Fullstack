@@ -2,6 +2,7 @@ namespace Core.Options;
 
 public class AzureVisionOptions
 {
-    public string Endpoint { get; set; } = null!;
+    public string BaseUrl { get; set; } = null!;
     public string Key { get; set; } = null!;
+    public string RemoveBackgroundEndpoint { get; set; } = null!;
 }
