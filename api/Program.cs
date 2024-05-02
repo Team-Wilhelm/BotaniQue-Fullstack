@@ -72,7 +72,8 @@ public static class Startup
         builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JWT"));
         builder.Services.Configure<MqttOptions>(builder.Configuration.GetSection("MQTT"));
         builder.Services.Configure<AzureVisionOptions>(builder.Configuration.GetSection("AzureVision"));
-        builder.Services.Configure<VercelBlobOptions>(builder.Configuration.GetSection("VercelBlob"));
+        builder.Services.Configure<AzureBlobStorageOptions>(builder.Configuration.GetSection("AzureBlob"));
+        
         
         // On ci options are stored as repository secrets
         if (args.Contains("ENVIRONMENT=Testing") && Environment.GetEnvironmentVariable("CI") is not null)
@@ -100,6 +101,13 @@ public static class Startup
                 options.BaseUrl = Environment.GetEnvironmentVariable("AZURE_VISION_BASE_URL") ?? throw new Exception("Azure vision endpoint is missing");
                 options.Key = Environment.GetEnvironmentVariable("AZURE_VISION_KEY") ?? throw new Exception("Azure vision key is missing");
                 options.RemoveBackgroundEndpoint = Environment.GetEnvironmentVariable("AZURE_VISION_REMOVE_BACKGROUND_ENDPOINT") ?? throw new Exception("Azure vision remove background endpoint is missing");
+            });
+            
+            builder.Services.Configure<AzureBlobStorageOptions>(options =>
+            {
+                options.ConnectionString = Environment.GetEnvironmentVariable("AZURE_BLOB_CONNECTION_STRING") ?? throw new Exception("Azure blob connection string is missing");
+                options.PlantImagesContainer = Environment.GetEnvironmentVariable("AZURE_BLOB_PLANT_IMAGES_CONTAINERE") ?? throw new Exception("Azure blob container name is missing");
+                options.UserProfileImagesContainer = Environment.GetEnvironmentVariable("AZURE_BLOB_USER_PROFILE_IMAGES_CONTAINER") ?? throw new Exception("Azure blob container name is missing");
             });
         }
         

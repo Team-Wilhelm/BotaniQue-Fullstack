@@ -1,4 +1,9 @@
-﻿using Infrastructure.Repositories;
+﻿using Azure.Identity;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Core.Options;
+using Infrastructure.Repositories;
+using Microsoft.Extensions.Options;
 using Shared.Dtos.FromClient.Plant;
 using Shared.Dtos.Plant;
 using Shared.Models;
@@ -7,11 +12,14 @@ using Shared.Models.Information;
 
 namespace Core.Services;
 
-public class PlantService (PlantRepository plantRepository, RequirementService requirementService)
+public class PlantService(
+    PlantRepository plantRepository,
+    RequirementService requirementService,
+    IOptions<AzureBlobStorageOptions> azureBlobStorageOptions)
 {
     private const string DefaultImageUrl =
         "https://www.creativefabrica.com/wp-content/uploads/2022/01/20/Animated-Plant-Graphics-23785833-1.jpg";
-    
+
     // TODO: decode base 64 image and save it to blob storage
     public async Task<Plant> CreatePlant(CreatePlantDto createPlantDto)
     {
@@ -19,7 +27,13 @@ public class PlantService (PlantRepository plantRepository, RequirementService r
         {
             createPlantDto.Nickname = GenerateRandomNickname();
         }
-         
+
+        string? ímageUrl = null;
+        if (createPlantDto.Base64Image is not null)
+        {
+            ímageUrl = await SaveImageToBlobStorage(createPlantDto.Base64Image, createPlantDto.UserEmail);
+        }
+        
         // Insert plant first to get the plantId
         var plant = new Plant
         {
@@ -27,7 +41,7 @@ public class PlantService (PlantRepository plantRepository, RequirementService r
             UserEmail = createPlantDto.UserEmail,
             // CollectionId = Guid.Empty, // TODO: fix when collections are implemented
             Nickname = createPlantDto.Nickname,
-            ImageUrl = createPlantDto.Base64Image ?? DefaultImageUrl,
+            ImageUrl = ímageUrl ?? DefaultImageUrl,
             DeviceId = createPlantDto.DeviceId
         };
         
@@ -37,10 +51,19 @@ public class PlantService (PlantRepository plantRepository, RequirementService r
         var requirementsDto = createPlantDto.CreateRequirementsDto;
         requirementsDto.PlantId = plant.PlantId;
         plant.Requirements =  await requirementService.CreateRequirements(requirementsDto);
-        
         return plant;
     }
-    
+
+    private async Task<string> SaveImageToBlobStorage(string base64Image, string userEmail)
+    {
+        var imageBytes = Convert.FromBase64String(base64Image);
+        var blobUrl = userEmail + "_" + Guid.NewGuid();
+        var blobClient = new BlobClient(azureBlobStorageOptions.Value.ConnectionString, azureBlobStorageOptions.Value.PlantImagesContainer, blobUrl);
+        var binaryData = new BinaryData(imageBytes);
+        await blobClient.UploadAsync(binaryData, true);
+        return blobClient.Uri.ToString();
+    }
+
     public async Task<Plant> GetPlantById(Guid id, string requesterEmail)
     {
         var plant = await VerifyPlantExistsAndUserHasAccess(id, requesterEmail);

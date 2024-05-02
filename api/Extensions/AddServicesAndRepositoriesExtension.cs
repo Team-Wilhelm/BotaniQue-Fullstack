@@ -24,5 +24,6 @@ public static class AddServicesAndRepositoriesExtension
         services.AddSingleton<MqttSubscriberService>();
         services.AddSingleton<MqttPublisherService>();
         services.AddSingleton<ImageBackgroundRemoverService>();
+        services.AddSingleton<BlobStorageService>();
     }
 }

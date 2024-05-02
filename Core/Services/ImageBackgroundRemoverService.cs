@@ -32,9 +32,6 @@ public class ImageBackgroundRemoverService(IOptions<AzureVisionOptions> options)
         
         // The response is image/png
         var removedBgImageBytes = await response.Content.ReadAsByteArrayAsync();
-        var filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), $"{Guid.NewGuid()}.png");
-        await File.WriteAllBytesAsync(filePath, removedBgImageBytes);
-        
         return removedBgImageBytes;
     }
 }
