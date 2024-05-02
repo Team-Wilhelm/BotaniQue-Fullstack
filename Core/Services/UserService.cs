@@ -26,4 +26,9 @@ public class UserService(UserRepository userRepository, JwtService jwtService)
     {
         return await userRepository.GetUserByEmail(email);
     }
+
+    public async Task UpdateUser(UpdateUserDto updateUserDto)
+    {
+        await userRepository.UpdateUser(updateUserDto);
+    }
 }

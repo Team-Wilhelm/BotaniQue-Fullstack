@@ -44,4 +44,26 @@ public class UserRepository(IDbContextFactory<ApplicationDbContext> dbContextFac
 
         return user;
     }
+
+    public async Task UpdateUser(UpdateUserDto updateUserDto)
+    {
+        await using var context = await dbContextFactory.CreateDbContextAsync();
+        var userToUpdate = await context.Users.FirstOrDefaultAsync(u => u.UserEmail == updateUserDto.UserEmail);
+        if (userToUpdate == null) return;
+
+        if (updateUserDto.Username != null && !updateUserDto.Username.Equals(string.Empty))
+        {
+            userToUpdate.UserName = updateUserDto.Username;
+        }
+
+        if (updateUserDto.Password != null && !updateUserDto.Password.Equals(string.Empty))
+        {
+            var passwordHashAndSalt = PasswordHasher.HashPassword(updateUserDto.Password);
+            userToUpdate.PasswordHash = passwordHashAndSalt[1];
+            userToUpdate.PasswordSalt = passwordHashAndSalt[0];
+        }
+        //TODO add profile image to user
+        context.Users.Update(userToUpdate);
+        await context.SaveChangesAsync();
+    }
 }
