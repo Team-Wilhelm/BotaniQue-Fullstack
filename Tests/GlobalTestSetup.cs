@@ -8,6 +8,7 @@ public class GlobalTestSetup
     [OneTimeSetUp]
     public async Task StartApi()
     {
-        await Startup.StartApi(["ENVIRONMENT=Testing", "--db-init"]);
+        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
+        await Startup.StartApi(["--db-init"]);
     }
 }

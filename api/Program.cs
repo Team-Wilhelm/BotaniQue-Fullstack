@@ -42,7 +42,7 @@ public static class Startup
 
         var builder = WebApplication.CreateBuilder(args);
 
-        if (args.Contains("ENVIRONMENT=Testing"))
+        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Testing")
         {
             var dbContainer = 
                 new PostgreSqlBuilder()
@@ -77,7 +77,7 @@ public static class Startup
         
         
         // On ci options are stored as repository secrets
-        if (args.Contains("ENVIRONMENT=Testing") && Environment.GetEnvironmentVariable("CI") is not null)
+        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Testing" && Environment.GetEnvironmentVariable("CI") is not null)
         {
             builder.Services.Configure<JwtOptions>(options =>
             {
@@ -111,7 +111,6 @@ public static class Startup
                 options.UserProfileImagesContainer = Environment.GetEnvironmentVariable("AZURE_BLOB_USER_PROFILE_IMAGES_CONTAINER") ?? throw new Exception("Azure blob container name is missing");
             });
         }
-        
         
         builder.Services.AddServicesAndRepositories();
         

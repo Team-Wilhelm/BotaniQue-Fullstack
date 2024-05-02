@@ -1,15 +1,12 @@
 using System.Net;
 using System.Net.Http.Headers;
-using System.Text;
 using Core.Options;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using Shared.Exceptions;
 
-namespace Core.Services;
+namespace Core.Services.External.BackgroundRemoval;
 
-public class ImageBackgroundRemoverService(IOptions<AzureVisionOptions> options)
+public class ImageBackgroundRemoverService(IOptions<AzureVisionOptions> options) : IImageBackgroundRemoverService
 {
     public async Task<byte[]> RemoveBackground(byte[] imageBytes)
     {

@@ -21,7 +21,7 @@ public class PlantTests : TestBase
         
         await webSocketTestClient.DoAndAssert(new ClientWantsToCreatePlantDto { CreatePlantDto = createPlantDto, Jwt = jwt }, receivedMessages =>
         {
-            return receivedMessages.Count(e => e.eventType == nameof(ServerSendsPlant)) == 1;
+            return receivedMessages.Count(e => e.eventType == nameof(ServerCreatesNewPlant)) == 1;
         });
         
         await webSocketTestClient.DoAndAssert(new ClientWantsAllPlantsDto
@@ -43,7 +43,7 @@ public class PlantTests : TestBase
             UserEmail = email,
             CollectionId = null,
             Nickname = "Nickname",
-            Base64Image = "https://realurl.com",
+            Base64Image = "iVBORw0KGgoAAAANSUhEUgAAAFgAAABHCAYAAACDFYB6AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAACmSURBVHhe7dAxAQAADMOg+TfdqeALEriFKhgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYK5jaHjFvRBBJ1UDnAAAAAElFTkSuQmCC",
             CreateRequirementsDto = new CreateRequirementsDto
             {
                 SoilMoistureLevel = RequirementLevel.Low,

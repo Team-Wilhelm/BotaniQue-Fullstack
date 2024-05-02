@@ -1,5 +1,5 @@
 using api.Extensions;
-using Core.Services;
+using Core.Services.External;
 using Fleck;
 using lib;
 using Shared.Exceptions;
@@ -12,7 +12,7 @@ public class ClientWantsToRemoveBackgroundFromImageDto : BaseDtoWithJwt
     public required string Base64Image { get; set; }
 }
 
-public class ClientWantsToRemoveBackgroundFromImage(ImageBackgroundRemoverService backgroundRemoverService) : BaseEventHandler<ClientWantsToRemoveBackgroundFromImageDto>
+public class ClientWantsToRemoveBackgroundFromImage(IImageBackgroundRemoverService backgroundRemoverService) : BaseEventHandler<ClientWantsToRemoveBackgroundFromImageDto>
 {
     public override async Task Handle(ClientWantsToRemoveBackgroundFromImageDto dto, IWebSocketConnection socket)
     {
