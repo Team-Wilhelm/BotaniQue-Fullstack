@@ -7,10 +7,11 @@ using Shared.Dtos;
 using Shared.Dtos.FromClient;
 using Shared.Dtos.FromClient.Identity;
 using Shared.Exceptions;
+using Shared.Models;
 
 namespace api.Events.Auth.Client;
 
-public class ClientWantsToLogInDto : BaseDto
+public class ClientWantsToLogInDto : BaseDtoWithJwt
 {
     public LoginDto LoginDto { get; set; } = null!;
 }

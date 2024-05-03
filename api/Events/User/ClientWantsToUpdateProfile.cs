@@ -5,10 +5,11 @@ using lib;
 using Shared.Dtos;
 using Shared.Dtos.FromClient;
 using Shared.Exceptions;
+using Shared.Models;
 
 namespace api.Events.User;
 
-public class ClientWantsToUpdateUserDto : BaseDto
+public class ClientWantsToUpdateUserDto : BaseDtoWithJwt
 {
     public UpdateUserDto UpdateUserDto { get; set; } = null!;
 }
