@@ -68,10 +68,7 @@ public class UserRepository(IDbContextFactory<ApplicationDbContext> dbContextFac
             userToUpdate.PasswordSalt = passwordHashAndSalt[0];
         }
         
-        if(updateUserDto.BlobUrl != null)
-        {
-            userToUpdate.BlobUrl = updateUserDto.BlobUrl;
-        }
+        userToUpdate.BlobUrl = updateUserDto.BlobUrl;
         
         var getUserDto = new GetUserDto
         {
