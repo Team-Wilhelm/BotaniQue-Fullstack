@@ -3,6 +3,7 @@ using api.Extensions;
 using Core.Services;
 using Fleck;
 using lib;
+using Shared.Dtos;
 using Shared.Dtos.FromClient;
 using Shared.Dtos.FromClient.Identity;
 using Shared.Exceptions;
@@ -23,7 +24,22 @@ public class ClientWantsToLogIn(WebSocketConnectionService connectionService, Us
         if (jwt == null) throw new InvalidCredentialsException();
 
         var user = await userService.GetUserByEmail(dto.LoginDto.Email);
-        connectionService.AuthenticateConnection(socket.ConnectionInfo.Id, user!);
-        socket.SendDto(new ServerAuthenticatesUser { Jwt = jwt });
+        if (user == null) throw new NotFoundException();
+        
+        connectionService.AuthenticateConnection(socket.ConnectionInfo.Id, user);
+        
+        var getUserDto = new GetUserDto
+        {
+            UserEmail = user.UserEmail,
+            Username = user.UserName,
+            BlobUrl = user.BlobUrl
+        };
+        
+        socket.SendDto(new ServerAuthenticatesUser
+        {
+            Jwt = jwt,
+            GetUserDto = getUserDto
+        });
     }
 }
+

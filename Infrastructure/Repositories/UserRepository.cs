@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Shared.Dtos;
 using Shared.Dtos.FromClient;
 using Shared.Dtos.FromClient.Identity;
 using Shared.Models.Identity;
@@ -13,7 +14,7 @@ public class UserRepository(IDbContextFactory<ApplicationDbContext> dbContextFac
         return await context.Users.FirstOrDefaultAsync(u => u.UserEmail == email);
     }
 
-    public async Task<User> CreateUser(RegisterUserDto registerUserDto)
+    public async Task CreateUser(RegisterUserDto registerUserDto)
     {
         await using var context = await dbContextFactory.CreateDbContextAsync();
 
@@ -27,10 +28,14 @@ public class UserRepository(IDbContextFactory<ApplicationDbContext> dbContextFac
             PasswordHash = passwordHashAndSalt[1],
             PasswordSalt = passwordHashAndSalt[0]
         };
+        
+        if(registerUserDto.BlobUrl != null)
+        {
+            user.BlobUrl = registerUserDto.BlobUrl;
+        }
 
         await context.Users.AddAsync(user);
         await context.SaveChangesAsync();
-        return user;
     }
 
     public async Task<User?> Login(LoginDto loginDto)
@@ -45,11 +50,11 @@ public class UserRepository(IDbContextFactory<ApplicationDbContext> dbContextFac
         return user;
     }
 
-    public async Task UpdateUser(UpdateUserDto updateUserDto)
+    public async Task<GetUserDto?> UpdateUser(UpdateUserDto updateUserDto)
     {
         await using var context = await dbContextFactory.CreateDbContextAsync();
         var userToUpdate = await context.Users.FirstOrDefaultAsync(u => u.UserEmail == updateUserDto.UserEmail);
-        if (userToUpdate == null) return;
+        if (userToUpdate == null) return null;
 
         if (updateUserDto.Username != null && !updateUserDto.Username.Equals(string.Empty))
         {
@@ -62,8 +67,22 @@ public class UserRepository(IDbContextFactory<ApplicationDbContext> dbContextFac
             userToUpdate.PasswordHash = passwordHashAndSalt[1];
             userToUpdate.PasswordSalt = passwordHashAndSalt[0];
         }
-        //TODO add profile image to user
+        
+        if(updateUserDto.BlobUrl != null)
+        {
+            userToUpdate.BlobUrl = updateUserDto.BlobUrl;
+        }
+        
+        var getUserDto = new GetUserDto
+        {
+            UserEmail = userToUpdate.UserEmail,
+            Username = userToUpdate.UserName,
+            BlobUrl = userToUpdate.BlobUrl
+        };
+        
         context.Users.Update(userToUpdate);
         await context.SaveChangesAsync();
+
+        return getUserDto;
     }
 }

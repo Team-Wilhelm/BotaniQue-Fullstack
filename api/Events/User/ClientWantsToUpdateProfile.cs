@@ -2,7 +2,9 @@
 using Core.Services;
 using Fleck;
 using lib;
+using Shared.Dtos;
 using Shared.Dtos.FromClient;
+using Shared.Exceptions;
 
 namespace api.Events.User;
 
@@ -15,11 +17,19 @@ public class ClientWantsToUpdateProfile (UserService userService) : BaseEventHan
 {
     public override async Task Handle(ClientWantsToUpdateUserDto dto, IWebSocketConnection socket)
     {
-        await userService.UpdateUser(dto.UpdateUserDto);
-        socket.SendDto(new ServerConfirmsUpdate());
+        var getUserDto = await userService.UpdateUser(dto.UpdateUserDto);
+        if (getUserDto == null)
+        {
+            throw new AppException("Failed to update user.");
+        }
+        socket.SendDto(new ServerConfirmsUpdate
+        {
+            GetUserDto = getUserDto
+        });
     }
 }
 
 public class ServerConfirmsUpdate : BaseDto
 {
+    public GetUserDto? GetUserDto { get; set; } = null!;
 }

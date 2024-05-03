@@ -1,4 +1,6 @@
+using Core.Services.External.BlobStorage;
 using Infrastructure.Repositories;
+using Shared.Dtos;
 using Shared.Dtos.FromClient;
 using Shared.Dtos.FromClient.Identity;
 using Shared.Exceptions;
@@ -6,14 +8,19 @@ using Shared.Models.Identity;
 
 namespace Core.Services;
 
-public class UserService(UserRepository userRepository, JwtService jwtService)
+public class UserService(UserRepository userRepository, JwtService jwtService, IBlobStorageService blobStorageService)
 {
-    public async Task<User> CreateUser(RegisterUserDto registerUserDto)
+    public async Task CreateUser(RegisterUserDto registerUserDto)
     {
         var user = await userRepository.GetUserByEmail(registerUserDto.Email);
         if (user != null) throw new UserAlreadyExistsException();
+        
+        if (registerUserDto.Base64Image != null)
+        {
+            registerUserDto.BlobUrl = await blobStorageService.SaveImageToBlobStorage(registerUserDto.Base64Image, registerUserDto.Email, null);
+        }
        
-        return await userRepository.CreateUser(registerUserDto);
+        await userRepository.CreateUser(registerUserDto);
     }
 
     public async Task<string?> Login(LoginDto loginDto)
@@ -27,8 +34,12 @@ public class UserService(UserRepository userRepository, JwtService jwtService)
         return await userRepository.GetUserByEmail(email);
     }
 
-    public async Task UpdateUser(UpdateUserDto updateUserDto)
+    public async Task<GetUserDto?> UpdateUser(UpdateUserDto updateUserDto)
     {
-        await userRepository.UpdateUser(updateUserDto);
+        if (updateUserDto.Base64Image != null)
+        {
+            updateUserDto.BlobUrl = await blobStorageService.SaveImageToBlobStorage(updateUserDto.Base64Image, updateUserDto.UserEmail, null);
+        }
+        return await userRepository.UpdateUser(updateUserDto);
     }
 }
