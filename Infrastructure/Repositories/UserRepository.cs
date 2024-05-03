@@ -50,25 +50,16 @@ public class UserRepository(IDbContextFactory<ApplicationDbContext> dbContextFac
         return user;
     }
 
-    public async Task<GetUserDto?> UpdateUser(UpdateUserDto updateUserDto)
+    public async Task<GetUserDto?> UpdateUser(User userToUpdate, string? password)
     {
         await using var context = await dbContextFactory.CreateDbContextAsync();
-        var userToUpdate = await context.Users.FirstOrDefaultAsync(u => u.UserEmail == updateUserDto.UserEmail);
-        if (userToUpdate == null) return null;
-
-        if (updateUserDto.Username != null && !updateUserDto.Username.Equals(string.Empty))
+        
+        if (password != null && !password.Equals(string.Empty))
         {
-            userToUpdate.UserName = updateUserDto.Username;
-        }
-
-        if (updateUserDto.Password != null && !updateUserDto.Password.Equals(string.Empty))
-        {
-            var passwordHashAndSalt = PasswordHasher.HashPassword(updateUserDto.Password);
+            var passwordHashAndSalt = PasswordHasher.HashPassword(password);
             userToUpdate.PasswordHash = passwordHashAndSalt[1];
             userToUpdate.PasswordSalt = passwordHashAndSalt[0];
         }
-        
-        userToUpdate.BlobUrl = updateUserDto.BlobUrl;
         
         var getUserDto = new GetUserDto
         {

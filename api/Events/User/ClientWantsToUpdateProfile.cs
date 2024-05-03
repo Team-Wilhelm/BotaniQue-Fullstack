@@ -1,4 +1,5 @@
-﻿using api.Extensions;
+﻿using api.EventFilters;
+using api.Extensions;
 using Core.Services;
 using Fleck;
 using lib;
@@ -14,6 +15,7 @@ public class ClientWantsToUpdateUserDto : BaseDtoWithJwt
     public UpdateUserDto UpdateUserDto { get; set; } = null!;
 }
 
+[ValidateDataAnnotations]
 public class ClientWantsToUpdateProfile (UserService userService) : BaseEventHandler<ClientWantsToUpdateUserDto>
 {
     public override async Task Handle(ClientWantsToUpdateUserDto dto, IWebSocketConnection socket)

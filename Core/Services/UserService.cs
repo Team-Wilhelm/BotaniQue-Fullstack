@@ -36,10 +36,20 @@ public class UserService(UserRepository userRepository, JwtService jwtService, I
 
     public async Task<GetUserDto?> UpdateUser(UpdateUserDto updateUserDto)
     {
+        var userToUpdate = await userRepository.GetUserByEmail(updateUserDto.UserEmail);
+        if (userToUpdate == null) return null;
+        
+        if (updateUserDto.Username != null && !updateUserDto.Username.Equals(string.Empty))
+        {
+            userToUpdate.UserName = updateUserDto.Username;
+        }
+        
+        var currentBlobUrl = userToUpdate.BlobUrl;
         if (updateUserDto.Base64Image != null)
         {
-            updateUserDto.BlobUrl = await blobStorageService.SaveImageToBlobStorage(updateUserDto.Base64Image, updateUserDto.UserEmail, null);
+            updateUserDto.BlobUrl = await blobStorageService.SaveImageToBlobStorage(updateUserDto.Base64Image, updateUserDto.UserEmail, currentBlobUrl);
         }
-        return await userRepository.UpdateUser(updateUserDto);
+        
+        return await userRepository.UpdateUser(userToUpdate, updateUserDto.Password);
     }
 }

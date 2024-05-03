@@ -11,7 +11,7 @@ using Shared.Models;
 
 namespace api.Events.Auth.Client;
 
-public class ClientWantsToLogInDto : BaseDtoWithJwt
+public class ClientWantsToLogInDto : BaseDto
 {
     public LoginDto LoginDto { get; set; } = null!;
 }
