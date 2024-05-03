@@ -6,7 +6,7 @@ public class User
     public string UserName { get; set; } = null!;
     public byte[] PasswordHash { get; set; } = null!;
     public byte[] PasswordSalt { get; set; } = null!;
-
+    public string? BlobUrl { get; set; }
     public List<Collection> Collections { get; set; } = new();
     public List<Plant> Plants { get; set; } = new();
 }

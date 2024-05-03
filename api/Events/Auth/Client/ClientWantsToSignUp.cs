@@ -20,7 +20,7 @@ public class ClientWantsToSignUp(UserService userService) : BaseEventHandler<Cli
     public override async Task Handle(ClientWantsToSignUpDto dto, IWebSocketConnection socket)
     {
         var registerUserDto = dto.RegisterUserDto;
-        var user = await userService.CreateUser(registerUserDto);
+        await userService.CreateUser(registerUserDto);
         var serverSignsUserUp = new ServerSignsUserUp();
         socket.SendDto(serverSignsUserUp);
     }
