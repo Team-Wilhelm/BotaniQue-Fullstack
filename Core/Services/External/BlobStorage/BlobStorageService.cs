@@ -1,3 +1,4 @@
+using System.Net;
 using Azure.Storage.Blobs;
 using Azure.Storage.Sas;
 using Core.Options;
@@ -11,11 +12,14 @@ public class BlobStorageService(IOptions<AzureBlobStorageOptions> azureBlobStora
     public async Task<string> SaveImageToBlobStorage(string base64Image, string userEmail, string? blobUrl = null)
     {
         var imageBytes = Convert.FromBase64String(base64Image);
-        blobUrl ??= userEmail + "_" + Guid.NewGuid();
-        var blobClient = new BlobClient(azureBlobStorageOptions.Value.ConnectionString, azureBlobStorageOptions.Value.PlantImagesContainer, blobUrl);
+        var blobName = blobUrl is not null 
+            ? GetBlobNameFromUrl(blobUrl) 
+            : userEmail + "_" + Guid.NewGuid();
+       
+        var blobClient = new BlobClient(azureBlobStorageOptions.Value.ConnectionString, azureBlobStorageOptions.Value.PlantImagesContainer, blobName);
         var binaryData = new BinaryData(imageBytes);
         await blobClient.UploadAsync(binaryData, true);
-        return blobClient.Uri.ToString();
+        return WebUtility.UrlDecode(blobClient.Uri.ToString());
     }
     
     public async Task<bool> DeleteImageFromBlobStorage(string imageUrl)
@@ -41,11 +45,7 @@ public class BlobStorageService(IOptions<AzureBlobStorageOptions> azureBlobStora
     {
         var blobServiceClient = new BlobServiceClient(azureBlobStorageOptions.Value.ConnectionString);
         var blobContainerClient = blobServiceClient.GetBlobContainerClient(azureBlobStorageOptions.Value.PlantImagesContainer);
-        
-        // Extract the blob name from the blobUrl
-        var blobName =
-            new Uri(blobUrl).AbsolutePath.Substring(azureBlobStorageOptions.Value.PlantImagesContainer.Length + 2);
-        var blobClient = blobContainerClient.GetBlobClient(blobName);
+        var blobClient = blobContainerClient.GetBlobClient(GetBlobNameFromUrl(blobUrl));
         
         var blobSasBuilder = new BlobSasBuilder
         {
@@ -56,8 +56,6 @@ public class BlobStorageService(IOptions<AzureBlobStorageOptions> azureBlobStora
             ExpiresOn = DateTimeOffset.UtcNow.AddHours(1),
         };
         blobSasBuilder.SetPermissions(BlobSasPermissions.Read);
-        var sasUri = blobClient.GenerateSasUri(blobSasBuilder).ToString();
-        Console.WriteLine(sasUri);
         return blobClient.GenerateSasUri(blobSasBuilder).ToString();
     }
     
@@ -68,5 +66,10 @@ public class BlobStorageService(IOptions<AzureBlobStorageOptions> azureBlobStora
             Query = string.Empty
         };
         return blobUriBuilder.ToString();
+    }
+    
+    private string GetBlobNameFromUrl(string blobUrl)
+    {
+        return WebUtility.UrlDecode(new Uri(blobUrl).AbsolutePath.Substring(azureBlobStorageOptions.Value.PlantImagesContainer.Length + 2));
     }
 }

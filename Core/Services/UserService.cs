@@ -17,7 +17,7 @@ public class UserService(UserRepository userRepository, JwtService jwtService, I
         
         if (registerUserDto.Base64Image != null)
         {
-            registerUserDto.BlobUrl = await blobStorageService.SaveImageToBlobStorage(registerUserDto.Base64Image, registerUserDto.Email, null);
+            registerUserDto.BlobUrl = await blobStorageService.SaveImageToBlobStorage(registerUserDto.Base64Image, registerUserDto.Email);
         }
        
         await userRepository.CreateUser(registerUserDto);
