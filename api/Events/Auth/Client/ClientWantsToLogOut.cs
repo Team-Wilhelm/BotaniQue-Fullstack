@@ -5,10 +5,7 @@ using lib;
 
 namespace api.Events.Auth.Client;
 
-public class ClientWantsToLogOutDto : BaseDto
-{
-    public string UserEmail { get; set; } = null!;
-}
+public class ClientWantsToLogOutDto : BaseDto;
 
 public class ClientWantsToLogOut(WebSocketConnectionService connectionService)
     : BaseEventHandler<ClientWantsToLogOutDto>

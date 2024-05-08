@@ -14,8 +14,10 @@ public class PlantService(
     RequirementService requirementService,
     IBlobStorageService blobStorageService)
 {
-    public async Task<Plant> CreatePlant(CreatePlantDto createPlantDto)
+    public async Task<Plant> CreatePlant(CreatePlantDto createPlantDto, string loggedInUserEmail)
     {
+        if (loggedInUserEmail != createPlantDto.UserEmail) throw new NoAccessException("You can't create a plant for another user");
+        
         if (string.IsNullOrEmpty(createPlantDto.Nickname))
         {
             createPlantDto.Nickname = GenerateRandomNickname();
