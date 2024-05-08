@@ -5,6 +5,6 @@ namespace api.Events.Auth.Server;
 
 public class ServerAuthenticatesUser : BaseDto
 {
-    public string? Jwt { get; set; }
-    public GetUserDto GetUserDto { get; set; } = null!;
+    public required string Jwt { get; init; }
+    public GetUserDto GetUserDto { get; init; }
 }

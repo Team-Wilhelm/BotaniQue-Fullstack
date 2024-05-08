@@ -1,5 +1,4 @@
-﻿using Azure.Storage.Blobs;
-using Core.Options;
+﻿using Core.Options;
 using Core.Services.External.BlobStorage;
 using Infrastructure.Repositories;
 using Microsoft.Extensions.Options;
@@ -12,8 +11,10 @@ namespace Core.Services;
 public class PlantService(
     PlantRepository plantRepository,
     RequirementService requirementService,
-    IBlobStorageService blobStorageService)
+    IBlobStorageService blobStorageService,
+    IOptions<AzureBlobStorageOptions> azureBlobStorageOptions)
 {
+
     public async Task<Plant> CreatePlant(CreatePlantDto createPlantDto, string loggedInUserEmail)
     {
         if (loggedInUserEmail != createPlantDto.UserEmail) throw new NoAccessException("You can't create a plant for another user");
@@ -23,7 +24,7 @@ public class PlantService(
             createPlantDto.Nickname = GenerateRandomNickname();
         }
 
-        string? ímageUrl = null;
+        var ímageUrl = azureBlobStorageOptions.Value.DefaultPlantImageUrl;
         if (createPlantDto.Base64Image is not null)
         {
             ímageUrl = await blobStorageService.SaveImageToBlobStorage(createPlantDto.Base64Image, createPlantDto.UserEmail);
@@ -36,7 +37,7 @@ public class PlantService(
             UserEmail = createPlantDto.UserEmail,
             // CollectionId = Guid.Empty, // TODO: fix when collections are implemented
             Nickname = createPlantDto.Nickname,
-            ImageUrl = ímageUrl ?? "",
+            ImageUrl = ímageUrl,
             DeviceId = createPlantDto.DeviceId
         };
         
@@ -46,18 +47,21 @@ public class PlantService(
         var requirementsDto = createPlantDto.CreateRequirementsDto;
         requirementsDto.PlantId = plant.PlantId;
         plant.Requirements =  await requirementService.CreateRequirements(requirementsDto);
+        plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl);
         return plant;
     }
 
     public async Task<Plant> GetPlantById(Guid id, string requesterEmail)
     {
         var plant = await VerifyPlantExistsAndUserHasAccess(id, requesterEmail);
+        plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl);
         return plant;
     }
     
     public async Task<List<Plant>> GetPlantsForUser(string userEmail, int pageNumber, int pageSize)
     {
         var plants = await plantRepository.GetPlantsForUser(userEmail, pageNumber, pageSize);
+        plants.ForEach(plant => plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl)); // Otherwise the client can't access the image
         return plants;
     }
     
@@ -72,7 +76,8 @@ public class PlantService(
             requirements = await requirementService.UpdateRequirements(updatePlantDto.UpdateRequirementDto, plant.PlantId);
         }
         
-        var imageUrl = plant.ImageUrl;
+        // The urls coming from the client are SAS urls, so we need to convert them to normal urls
+        var imageUrl = blobStorageService.GetBlobUrlFromSasUri(plant.ImageUrl);
         if (updatePlantDto.Base64Image is not null)
         {
           imageUrl = await blobStorageService.SaveImageToBlobStorage(updatePlantDto.Base64Image, requesterEmail, plant.ImageUrl);
@@ -89,6 +94,8 @@ public class PlantService(
             Requirements = requirements,
             ConditionsLogs = plant.ConditionsLogs
         };
+        
+        plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl);
         return await plantRepository.UpdatePlant(plant);
     }
     
