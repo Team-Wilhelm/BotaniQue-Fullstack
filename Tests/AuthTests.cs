@@ -30,7 +30,7 @@ public class AuthTests : TestBase
             return receivedMessages.Count(e => e.eventType == nameof(ServerAuthenticatesUser)) == 1;
         });
         
-        await ws.DoAndAssert(new ClientWantsToLogOutDto { UserEmail = registerUserDto.Email }, receivedMessages =>
+        await ws.DoAndAssert(new ClientWantsToLogOutDto(), receivedMessages =>
         {
             return receivedMessages.Count(e => e.eventType == nameof(ServerLogsOutUser)) == 1;
         });

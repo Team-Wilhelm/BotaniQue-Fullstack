@@ -21,9 +21,6 @@ public class ClientWantsToLogIn(WebSocketConnectionService connectionService, Us
     {
         var jwt = await userService.Login(dto.LoginDto);
         if (jwt == null) throw new InvalidCredentialsException();
-
-        var user = await userService.GetUserByEmail(dto.LoginDto.Email);
-        connectionService.AuthenticateConnection(socket.ConnectionInfo.Id, user!);
         socket.SendDto(new ServerAuthenticatesUser { Jwt = jwt });
     }
 }

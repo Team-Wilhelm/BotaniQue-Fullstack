@@ -161,7 +161,6 @@ public static class Startup
                         var jwtValid = jwtService.IsJwtTokenValid(dto.Jwt);
                         if (!jwtValid)
                         {
-                            app.Services.GetRequiredService<WebSocketConnectionService>().RevertAuthentication(socket);
                             throw new NotAuthenticatedException("JWT token is not valid. Please log in.");
                         }
                     }
