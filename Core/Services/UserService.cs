@@ -29,9 +29,11 @@ public class UserService(UserRepository userRepository, JwtService jwtService, I
         return user == null ? null : jwtService.IssueJwt(user);
     }
 
-    public async Task<User?> GetUserByEmail(string email)
+    public async Task<User> GetUserByEmail(string email)
     {
-        return await userRepository.GetUserByEmail(email);
+        var user = await userRepository.GetUserByEmail(email);
+        if (user == null) throw new NotFoundException();
+        return user;
     }
 
     public async Task<GetUserDto?> UpdateUser(UpdateUserDto updateUserDto)

@@ -3,6 +3,7 @@ using api.Extensions;
 using Core.Services;
 using Fleck;
 using lib;
+using Shared.Dtos;
 using Shared.Dtos.FromClient;
 using Shared.Dtos.FromClient.Identity;
 using Shared.Exceptions;
@@ -14,7 +15,7 @@ public class ClientWantsToLogInDto : BaseDto
     public LoginDto LoginDto { get; set; } = null!;
 }
 
-public class ClientWantsToLogIn(WebSocketConnectionService connectionService, UserService userService)
+public class ClientWantsToLogIn(UserService userService)
     : BaseEventHandler<ClientWantsToLogInDto>
 {
     public override async Task Handle(ClientWantsToLogInDto dto, IWebSocketConnection socket)
