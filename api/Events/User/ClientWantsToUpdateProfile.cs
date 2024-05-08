@@ -21,18 +21,37 @@ public class ClientWantsToUpdateProfile (UserService userService) : BaseEventHan
     public override async Task Handle(ClientWantsToUpdateUserDto dto, IWebSocketConnection socket)
     {
         var getUserDto = await userService.UpdateUser(dto.UpdateUserDto);
-        if (getUserDto == null)
+        if (getUserDto != null)
         {
-            throw new AppException("Failed to update user.");
+            socket.SendDto(new ServerConfirmsUpdate
+            {
+                GetUserDto = getUserDto
+            });
         }
-        socket.SendDto(new ServerConfirmsUpdate
+        else
         {
-            GetUserDto = getUserDto
-        });
+            var user = await userService.GetUserByEmail(dto.UpdateUserDto.UserEmail);
+            socket.SendDto(new ServerRejectsUpdate
+            {
+                ErrorMessage = user == null ? "User not found" : "Update failed",
+                GetUserDto = new GetUserDto
+                {
+                    UserEmail = dto.UpdateUserDto.UserEmail,
+                    Username = user?.UserName,
+                    BlobUrl = user?.BlobUrl
+                }
+            });
+        }
     }
 }
 
 public class ServerConfirmsUpdate : BaseDto
 {
     public GetUserDto? GetUserDto { get; set; } = null!;
+}
+
+public class ServerRejectsUpdate : BaseDto
+{
+    public string ErrorMessage { get; set; } = null!;
+    public GetUserDto GetUserDto { get; set; } = null!;
 }
