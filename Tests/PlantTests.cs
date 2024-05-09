@@ -1,3 +1,4 @@
+using api.Events.Collections.Server;
 using api.Events.PlantEvents.Client;
 using api.Events.PlantEvents.Server;
 using lib;
@@ -31,7 +32,7 @@ public class PlantTests : TestBase
             PageSize = 10
         }, receivedMessages =>
         {
-            return receivedMessages.Count(e => e.eventType == nameof(ServerSendsAllPlants)) == 1;
+            return receivedMessages.Count(e => e.eventType == nameof(ServerSendsPlantsForCollection)) == 1;
         });
     }
     

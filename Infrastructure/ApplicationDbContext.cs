@@ -142,6 +142,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             {
                 ConditionsId = Guid.NewGuid(),
                 PlantId = plants[0].PlantId,
+                TimeStamp = DateTime.UtcNow,
+                Mood = 2,
                 Light = 33.0,
                 SoilMoisture = 74.0,
                 Humidity = 50.0,

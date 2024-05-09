@@ -5,5 +5,5 @@ namespace api.Events.Conditions;
 
 public class ServerSendsLatestConditionsForPlant : BaseDto
 {
-    public required ConditionsLog ConditionsLog;
+    public required ConditionsLog ConditionsLog { get; set; }
 }

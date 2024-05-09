@@ -17,10 +17,12 @@ public class ClientWantsLatestConditionsForPlant(JwtService jwtService, Conditio
     {
         var email = jwtService.GetEmailFromJwt(dto.Jwt!);
         var conditionsLog = await conditionsLogsService.GetLatestConditionsLogForPlant(dto.PlantId, email);
-        socket.SendDto(new ServerSendsLatestConditionsForPlant()
-            {
-                ConditionsLog = conditionsLog
-            }
-        );
+        
+        var serverResponse = new ServerSendsLatestConditionsForPlant
+        {
+            ConditionsLog = conditionsLog
+        };
+        
+        socket.SendDto(serverResponse);
     }
 }

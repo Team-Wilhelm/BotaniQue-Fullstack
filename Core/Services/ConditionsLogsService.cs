@@ -26,7 +26,8 @@ public class ConditionsLogsService (ConditionsLogsRepository conditionsLogsRepos
             Light = createConditionsLogDto.Light,
             Temperature = createConditionsLogDto.Temperature,
             Humidity = createConditionsLogDto.Humidity,
-            PlantId = plantId
+            PlantId = plantId,
+            Mood = -1
         };
         
         var newMood = await CalculateMood(conditionsLog);
