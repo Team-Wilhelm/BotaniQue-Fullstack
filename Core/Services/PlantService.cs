@@ -110,6 +110,11 @@ public class PlantService(
         await plantRepository.DeletePlant(plant);
     }
     
+    public async Task<Guid> GetPlantIdByDeviceIdAsync(string deviceId)
+    {
+        return await plantRepository.GetPlantIdByDeviceIdAsync(deviceId);
+    }
+    
     private string GenerateRandomNickname()
     {
         var firstName = new List<string>
