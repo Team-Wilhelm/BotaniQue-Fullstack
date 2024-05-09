@@ -26,7 +26,6 @@ public class PlantTests : TestBase
         
         await webSocketTestClient.DoAndAssert(new ClientWantsAllPlantsDto
         {
-            UserEmail = email, 
             Jwt = jwt,
             PageNumber = 1,
             PageSize = 10

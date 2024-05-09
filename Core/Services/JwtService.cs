@@ -35,7 +35,7 @@ public class JwtService(IOptions<JwtOptions> jwtOptions)
         }
     }
 
-    public Dictionary<string, string> ValidateJwtAndReturnClaims(string jwt)
+    private Dictionary<string, string> GetClaimsFromJwt(string jwt)
     {
         try
         {
@@ -52,6 +52,12 @@ public class JwtService(IOptions<JwtOptions> jwtOptions)
             Log.Error(e, "ValidateJwtAndReturnClaims");
             throw new AuthenticationException("Authentication failed.");
         }
+    }
+    
+    public string GetEmailFromJwt(string jwt)
+    {
+        var claims = GetClaimsFromJwt(jwt);
+        return claims["email"];
     }
     
     public bool IsJwtTokenValid(string jwt)

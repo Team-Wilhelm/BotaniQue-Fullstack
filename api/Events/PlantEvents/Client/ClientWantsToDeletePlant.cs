@@ -16,12 +16,12 @@ public class ClientWantsToDeletePlantDto: BaseDtoWithJwt
 }
 
 [ValidateDataAnnotations]
-public class ClientWantsToDeletePlant(PlantService plantService, WebSocketConnectionService connectionService): BaseEventHandler<ClientWantsToDeletePlantDto>
+public class ClientWantsToDeletePlant(PlantService plantService, JwtService jwtService): BaseEventHandler<ClientWantsToDeletePlantDto>
 {
     public override async Task Handle(ClientWantsToDeletePlantDto dto, IWebSocketConnection socket)
     {
-        var user = connectionService.GetUser(socket);
-        await plantService.DeletePlant(dto.PlantId, user.UserEmail);
+        var email = jwtService.GetEmailFromJwt(dto.Jwt);
+        await plantService.DeletePlant(dto.PlantId, email);
         var serverConfirmsDelete = new ServerConfirmsDelete();
         socket.SendDto(serverConfirmsDelete);
     }

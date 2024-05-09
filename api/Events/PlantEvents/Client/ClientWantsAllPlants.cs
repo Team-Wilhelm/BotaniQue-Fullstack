@@ -11,17 +11,17 @@ namespace api.Events.PlantEvents.Client;
 
 public class ClientWantsAllPlantsDto: BaseDtoWithJwt
 {
-    [Required, EmailAddress] public string UserEmail { get; set; }
     [Range(1, int.MaxValue)] public int PageNumber { get; set; }
     [Range(1, int.MaxValue)] public int PageSize { get; set; }
 }
 
 [ValidateDataAnnotations]
-public class ClientWantsAllPlants(PlantService plantService): BaseEventHandler<ClientWantsAllPlantsDto>
+public class ClientWantsAllPlants(PlantService plantService, JwtService jwtService): BaseEventHandler<ClientWantsAllPlantsDto>
 {
     public override async Task Handle(ClientWantsAllPlantsDto dto, IWebSocketConnection socket)
     {
-        var plants = await plantService.GetPlantsForUser(dto.UserEmail, dto.PageNumber, dto.PageSize);
+        var email = jwtService.GetEmailFromJwt(dto.Jwt);
+        var plants = await plantService.GetPlantsForUser(email, dto.PageNumber, dto.PageSize);
         var serverSendsAllPlantsDto = new ServerSendsAllPlants
         {
             Plants = plants

@@ -16,4 +16,14 @@ public class MockBlobStorageService : IBlobStorageService
     {
         return Task.FromResult("base64Image");
     }
+    
+    public string GenerateSasUri(string blobUrl)
+    {
+        return "https://www.example.com";
+    }
+    
+    public string GetBlobUrlFromSasUri(string sasUri)
+    {
+        return "https://www.example.com";
+    }
 }
