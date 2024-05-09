@@ -3,10 +3,11 @@ using Shared.Models;
 
 namespace Infrastructure.Repositories;
 
-public class CollectionsRepository(ApplicationDbContext applicationDbContext)
+public class CollectionsRepository(IDbContextFactory<ApplicationDbContext> dbContextFactory)
 {
     public async Task<IEnumerable<Collection>> GetCollectionsForUser(string userEmail)
     {
+        await using var applicationDbContext = await dbContextFactory.CreateDbContextAsync();
         return await applicationDbContext.Collections
             .Where(collection => collection.UserEmail == userEmail)
             .ToListAsync();
@@ -14,6 +15,7 @@ public class CollectionsRepository(ApplicationDbContext applicationDbContext)
     
     public async Task<Collection?> GetCollection(Guid collectionId)
     {
+        await using var applicationDbContext = await dbContextFactory.CreateDbContextAsync();
         return await applicationDbContext.Collections
             .Include(collection => collection.Plants)
             .FirstOrDefaultAsync(collection => collection.CollectionId == collectionId);
@@ -21,6 +23,7 @@ public class CollectionsRepository(ApplicationDbContext applicationDbContext)
     
     public async Task<Collection> CreateCollection(Collection collection)
     {
+        await using var applicationDbContext = await dbContextFactory.CreateDbContextAsync();
         var createdCollection = (await applicationDbContext.Collections.AddAsync(collection)).Entity;
         await applicationDbContext.SaveChangesAsync();
         return createdCollection;
@@ -28,6 +31,7 @@ public class CollectionsRepository(ApplicationDbContext applicationDbContext)
     
     public async Task<Collection> UpdateCollection(Collection collection)
     {
+        await using var applicationDbContext = await dbContextFactory.CreateDbContextAsync();
         var updatedCollection = applicationDbContext.Collections.Update(collection).Entity;
         await applicationDbContext.SaveChangesAsync();
         return updatedCollection;
@@ -35,18 +39,21 @@ public class CollectionsRepository(ApplicationDbContext applicationDbContext)
     
     public async Task DeleteCollection(Collection collection)
     {
+        await using var applicationDbContext = await dbContextFactory.CreateDbContextAsync();
         applicationDbContext.Collections.Remove(collection);
         await applicationDbContext.SaveChangesAsync();
     }
     
     public async Task AddPlantToCollection(Collection collection, Plant plant)
     {
+        await using var applicationDbContext = await dbContextFactory.CreateDbContextAsync();
         collection.Plants.Add(plant);
         await applicationDbContext.SaveChangesAsync();
     }
     
     public async Task RemovePlantFromCollection(Collection collection, Plant plant)
-    {
+    {        
+        await using var applicationDbContext = await dbContextFactory.CreateDbContextAsync();
         collection.Plants.Remove(plant);
         await applicationDbContext.SaveChangesAsync();
     }

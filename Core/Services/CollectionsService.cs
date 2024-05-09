@@ -17,6 +17,12 @@ public class CollectionsService(CollectionsRepository collectionsRepository, Pla
         return await VerifyCollectionExistsAndUserHasAccess(collectionId, userEmail);
     }
     
+    public async Task<IEnumerable<Plant>> GetPlantsInCollection(Guid collectionId, string userEmail)
+    {
+        var collection = await VerifyCollectionExistsAndUserHasAccess(collectionId, userEmail);
+        return collection.Plants;
+    }
+    
     public async Task<Collection> CreateCollection(CreateCollectionDto createCollectionDto, string loggedInUser)
     {
         var collection = new Collection
