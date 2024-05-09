@@ -39,7 +39,6 @@ public class PlantTests : TestBase
     {
         var createPlantDto = new CreatePlantDto
         {
-            UserEmail = email,
             CollectionId = null,
             Nickname = "Nickname",
             Base64Image = "iVBORw0KGgoAAAANSUhEUgAAAFgAAABHCAYAAACDFYB6AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAACmSURBVHhe7dAxAQAADMOg+TfdqeALEriFKhgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYKxgrGCsYK5jaHjFvRBBJ1UDnAAAAAElFTkSuQmCC",

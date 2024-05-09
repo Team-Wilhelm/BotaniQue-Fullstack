@@ -1,9 +1,9 @@
 using lib;
-using Shared.Models;
+using Shared.Dtos;
 
 namespace api.Events.Collections.Server;
 
 public class ServerSendsAllCollections : BaseDto
 {
-    public List<Collection> Collections { get; set; }
+    public required List<GetCollectionDto> Collections { get; set; }
 }

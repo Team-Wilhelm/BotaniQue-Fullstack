@@ -13,11 +13,10 @@ public class CollectionsRepository(IDbContextFactory<ApplicationDbContext> dbCon
             .ToListAsync();
     }
     
-    public async Task<Collection?> GetCollection(Guid collectionId)
+    public async Task<Collection?> GetCollectionWithoutPlants(Guid collectionId)
     {
         await using var applicationDbContext = await dbContextFactory.CreateDbContextAsync();
         return await applicationDbContext.Collections
-            .Include(collection => collection.Plants)
             .FirstOrDefaultAsync(collection => collection.CollectionId == collectionId);
     }
     

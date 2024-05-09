@@ -1,4 +1,5 @@
 using Infrastructure.Repositories;
+using Shared.Dtos;
 using Shared.Dtos.FromClient.Collections;
 using Shared.Exceptions;
 using Shared.Models;
@@ -7,9 +8,14 @@ namespace Core.Services;
 
 public class CollectionsService(CollectionsRepository collectionsRepository, PlantService plantService)
 {
-    public async Task<IEnumerable<Collection>> GetCollectionsForUser(string userEmail)
+    public async Task<IEnumerable<GetCollectionDto>> GetCollectionsForUser(string userEmail)
     {
-        return await collectionsRepository.GetCollectionsForUser(userEmail);
+        var collectionsWithoutPlants = await collectionsRepository.GetCollectionsForUser(userEmail);
+        return collectionsWithoutPlants.Select(collection => new GetCollectionDto
+        {
+            CollectionId = collection.CollectionId,
+            Name = collection.Name,
+        });
     }
     
     public async Task<Collection> GetCollection(Guid collectionId, string userEmail)
@@ -19,8 +25,8 @@ public class CollectionsService(CollectionsRepository collectionsRepository, Pla
     
     public async Task<IEnumerable<Plant>> GetPlantsInCollection(Guid collectionId, string userEmail)
     {
-        var collection = await VerifyCollectionExistsAndUserHasAccess(collectionId, userEmail);
-        return collection.Plants;
+        await VerifyCollectionExistsAndUserHasAccess(collectionId, userEmail);
+        return await plantService.GetPlantsForCollection(collectionId);
     }
     
     public async Task<Collection> CreateCollection(CreateCollectionDto createCollectionDto, string loggedInUser)
@@ -63,7 +69,7 @@ public class CollectionsService(CollectionsRepository collectionsRepository, Pla
     
     private async Task<Collection> VerifyCollectionExistsAndUserHasAccess(Guid collectionId, string userEmail)
     {
-        var collection = await collectionsRepository.GetCollection(collectionId);
+        var collection = await collectionsRepository.GetCollectionWithoutPlants(collectionId);
         if (collection is null) throw new NotFoundException("Collection not found");
         if (collection.UserEmail != userEmail) throw new NoAccessException("You don't have access to this collection");
         return collection;
