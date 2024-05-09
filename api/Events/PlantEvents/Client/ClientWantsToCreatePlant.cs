@@ -20,13 +20,15 @@ public class ClientWantsToCreatePlant(PlantService plantService, JwtService jwtS
     public override async Task Handle(ClientWantsToCreatePlantDto dto, IWebSocketConnection socket)
     {
         var createPlantDto = dto.CreatePlantDto;
-        
         var email = jwtService.GetEmailFromJwt(dto.Jwt);
-        var plant = await plantService.CreatePlant(createPlantDto, email);
+        createPlantDto.UserEmail = email; // TODO: check this thoroughly, remove email from dtos
+        var plant = await plantService.CreatePlant(createPlantDto);
+        
         var serverCreatesNewPlant = new ServerCreatesNewPlant
         {
             Plant = plant
         };
+        
         socket.SendDto(serverCreatesNewPlant);
     }
 }
