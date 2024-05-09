@@ -16,11 +16,13 @@ public class ClientWantsToUpdateUserDto : BaseDtoWithJwt
 }
 
 [ValidateDataAnnotations]
-public class ClientWantsToUpdateProfile (UserService userService) : BaseEventHandler<ClientWantsToUpdateUserDto>
+public class ClientWantsToUpdateProfile (UserService userService, JwtService jwtService) : BaseEventHandler<ClientWantsToUpdateUserDto>
 {
     public override async Task Handle(ClientWantsToUpdateUserDto dto, IWebSocketConnection socket)
     {
-        var getUserDto = await userService.UpdateUser(dto.UpdateUserDto);
+        var email = jwtService.GetEmailFromJwt(dto.Jwt);
+        var getUserDto = await userService.UpdateUser(dto.UpdateUserDto, email);
+        
         if (getUserDto != null)
         {
             socket.SendDto(new ServerConfirmsUpdate
@@ -30,15 +32,18 @@ public class ClientWantsToUpdateProfile (UserService userService) : BaseEventHan
         }
         else
         {
-            var user = await userService.GetUserByEmail(dto.UpdateUserDto.UserEmail);
+            var user = await userService.GetUserByEmail(email);
+            
+            if (user == null) throw new NotFoundException("User not found");
+            
             socket.SendDto(new ServerRejectsUpdate
             {
-                ErrorMessage = user == null ? "User not found" : "Update failed",
-                GetUserDto = new GetUserDto
+                ErrorMessage = "Update failed",
+                GetUserDto =new GetUserDto
                 {
-                    UserEmail = dto.UpdateUserDto.UserEmail,
-                    Username = user?.UserName,
-                    BlobUrl = user?.BlobUrl
+                    UserEmail = email,
+                    Username = user.UserName,
+                    BlobUrl = user.BlobUrl
                 }
             });
         }
@@ -47,11 +52,11 @@ public class ClientWantsToUpdateProfile (UserService userService) : BaseEventHan
 
 public class ServerConfirmsUpdate : BaseDto
 {
-    public GetUserDto? GetUserDto { get; set; } = null!;
+    public GetUserDto GetUserDto { get; set; } = null!;
 }
 
 public class ServerRejectsUpdate : BaseDto
 {
     public string ErrorMessage { get; set; } = null!;
-    public GetUserDto GetUserDto { get; set; } = null!;
+    public GetUserDto? GetUserDto { get; set; }
 }
