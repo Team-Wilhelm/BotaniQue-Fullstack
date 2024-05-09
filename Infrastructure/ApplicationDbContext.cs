@@ -135,5 +135,18 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             }
         );
         plants[1].Requirements = requirements2;
+
+        var conditionsLogRepository = scope.ServiceProvider.GetRequiredService<ConditionsLogsRepository>();
+            await conditionsLogRepository.CreateConditionsLogAsync(
+            new ConditionsLog
+            {
+                ConditionsId = Guid.NewGuid(),
+                PlantId = plants[0].PlantId,
+                Light = 33.0,
+                SoilMoisture = 74.0,
+                Humidity = 50.0,
+                Temperature = 22.0,
+            }
+        );
     }
 }
