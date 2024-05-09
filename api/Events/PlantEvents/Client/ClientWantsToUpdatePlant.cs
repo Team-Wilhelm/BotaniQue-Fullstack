@@ -13,12 +13,12 @@ public class ClientWantsToUpdatePlantDto: BaseDtoWithJwt
     public UpdatePlantDto UpdatePlantDto { get; set; }
 }
 
-public class ClientWantsToUpdatePlant(PlantService plantService, WebSocketConnectionService connectionService): BaseEventHandler<ClientWantsToUpdatePlantDto>
+public class ClientWantsToUpdatePlant(PlantService plantService, JwtService jwtService): BaseEventHandler<ClientWantsToUpdatePlantDto>
 {
     public override async Task Handle(ClientWantsToUpdatePlantDto dto, IWebSocketConnection socket)
     {
-        var user = connectionService.GetUser(socket);
-        var plant = await plantService.UpdatePlant(dto.UpdatePlantDto, user.UserEmail);
+        var email = jwtService.GetEmailFromJwt(dto.Jwt);
+        var plant = await plantService.UpdatePlant(dto.UpdatePlantDto, email);
         socket.SendDto(new ServerSendsPlant
         {
             Plant = plant

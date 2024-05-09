@@ -4,5 +4,5 @@ namespace Shared.Models;
 
 public class BaseDtoWithJwt : BaseDto
 {
-    public string Jwt { get; set; }
+    public string? Jwt { get; init; }
 }

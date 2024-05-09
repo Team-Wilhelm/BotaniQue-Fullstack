@@ -4,10 +4,8 @@ using Core.Services;
 using Fleck;
 using lib;
 using Shared.Dtos;
-using Shared.Dtos.FromClient;
 using Shared.Dtos.FromClient.Identity;
 using Shared.Exceptions;
-using Shared.Models;
 
 namespace api.Events.Auth.Client;
 
@@ -16,7 +14,7 @@ public class ClientWantsToLogInDto : BaseDto
     public LoginDto LoginDto { get; set; } = null!;
 }
 
-public class ClientWantsToLogIn(WebSocketConnectionService connectionService, UserService userService)
+public class ClientWantsToLogIn(UserService userService)
     : BaseEventHandler<ClientWantsToLogInDto>
 {
     public override async Task Handle(ClientWantsToLogInDto dto, IWebSocketConnection socket)
@@ -25,9 +23,6 @@ public class ClientWantsToLogIn(WebSocketConnectionService connectionService, Us
         if (jwt == null) throw new InvalidCredentialsException();
 
         var user = await userService.GetUserByEmail(dto.LoginDto.Email);
-        if (user == null) throw new NotFoundException();
-        
-        connectionService.AuthenticateConnection(socket.ConnectionInfo.Id, user);
         
         var getUserDto = new GetUserDto
         {
@@ -43,4 +38,3 @@ public class ClientWantsToLogIn(WebSocketConnectionService connectionService, Us
         });
     }
 }
-

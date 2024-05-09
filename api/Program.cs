@@ -10,7 +10,6 @@ using Infrastructure.Repositories;
 using lib;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
-using Shared.Dtos.FromClient;
 using Shared.Dtos.FromClient.Identity;
 using Shared.Exceptions;
 using Shared.Models;
@@ -96,20 +95,6 @@ public static class Startup
                 options.SubscribeTopic = Environment.GetEnvironmentVariable("MQTT_SUBSCRIBE_TOPIC") ?? throw new Exception("MQTT subscribe topic is missing");
                 options.PublishTopic = Environment.GetEnvironmentVariable("MQTT_PUBLISH_TOPIC") ?? throw new Exception("MQTT publish topic is missing");
             });
-            
-            builder.Services.Configure<AzureVisionOptions>(options =>
-            {
-                options.BaseUrl = Environment.GetEnvironmentVariable("AZURE_VISION_BASE_URL") ?? throw new Exception("Azure vision endpoint is missing");
-                options.Key = Environment.GetEnvironmentVariable("AZURE_VISION_KEY") ?? throw new Exception("Azure vision key is missing");
-                options.RemoveBackgroundEndpoint = Environment.GetEnvironmentVariable("AZURE_VISION_REMOVE_BACKGROUND_ENDPOINT") ?? throw new Exception("Azure vision remove background endpoint is missing");
-            });
-            
-            builder.Services.Configure<AzureBlobStorageOptions>(options =>
-            {
-                options.ConnectionString = Environment.GetEnvironmentVariable("AZURE_BLOB_CONNECTION_STRING") ?? throw new Exception("Azure blob connection string is missing");
-                options.PlantImagesContainer = Environment.GetEnvironmentVariable("AZURE_BLOB_PLANT_IMAGES_CONTAINERE") ?? throw new Exception("Azure blob container name is missing");
-                options.UserProfileImagesContainer = Environment.GetEnvironmentVariable("AZURE_BLOB_USER_PROFILE_IMAGES_CONTAINER") ?? throw new Exception("Azure blob container name is missing");
-            });
         }
         
         builder.Services.AddServicesAndRepositories();
@@ -161,7 +146,6 @@ public static class Startup
                         var jwtValid = jwtService.IsJwtTokenValid(dto.Jwt);
                         if (!jwtValid)
                         {
-                            app.Services.GetRequiredService<WebSocketConnectionService>().RevertAuthentication(socket);
                             throw new NotAuthenticatedException("JWT token is not valid. Please log in.");
                         }
                     }

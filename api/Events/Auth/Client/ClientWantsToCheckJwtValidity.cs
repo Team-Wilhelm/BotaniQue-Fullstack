@@ -1,4 +1,4 @@
-﻿using api.Events.Auth.Server;
+using api.Events.Auth.Server;
 using api.Extensions;
 using Fleck;
 using lib;

@@ -15,12 +15,14 @@ public class ClientWantsToCreatePlantDto: BaseDtoWithJwt
 }
 
 [ValidateDataAnnotations]
-public class ClientWantsToCreatePlant(PlantService plantService): BaseEventHandler<ClientWantsToCreatePlantDto>
+public class ClientWantsToCreatePlant(PlantService plantService, JwtService jwtService): BaseEventHandler<ClientWantsToCreatePlantDto>
 {
     public override async Task Handle(ClientWantsToCreatePlantDto dto, IWebSocketConnection socket)
     {
         var createPlantDto = dto.CreatePlantDto;
-        var plant = await plantService.CreatePlant(createPlantDto);
+        
+        var email = jwtService.GetEmailFromJwt(dto.Jwt);
+        var plant = await plantService.CreatePlant(createPlantDto, email);
         var serverCreatesNewPlant = new ServerCreatesNewPlant
         {
             Plant = plant

@@ -36,7 +36,7 @@ public static class AddServicesAndRepositoriesExtension
         else
         {
             services.AddSingleton<IImageBackgroundRemoverService, ImageBackgroundRemoverService>();
-            services.AddSingleton<IBlobStorageService, BlobStorageServiceService>();
+            services.AddSingleton<IBlobStorageService, BlobStorageService>();
         }
     }
 }
