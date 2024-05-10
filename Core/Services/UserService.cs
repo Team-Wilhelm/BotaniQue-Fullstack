@@ -39,7 +39,7 @@ public class UserService(UserRepository userRepository, JwtService jwtService, I
     public async Task<GetUserDto?> UpdateUser(UpdateUserDto updateUserDto, string email)
     {
         var userToUpdate = await userRepository.GetUserByEmail(email);
-        if (userToUpdate == null) return null;
+        if (userToUpdate == null) throw new NotFoundException("User not found");
         
         if (updateUserDto.Username != null && !updateUserDto.Username.Equals(string.Empty))
         {
