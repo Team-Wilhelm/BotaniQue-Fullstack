@@ -21,21 +21,16 @@ public class ClientWantsToUpdateProfile (UserService userService, JwtService jwt
     public override async Task Handle(ClientWantsToUpdateUserDto dto, IWebSocketConnection socket)
     {
         var email = jwtService.GetEmailFromJwt(dto.Jwt);
-        var getUserDto = await userService.UpdateUser(dto.UpdateUserDto, email);
-        
-        if (getUserDto != null)
+        try
         {
+            var getUserDto = await userService.UpdateUser(dto.UpdateUserDto, email);
             socket.SendDto(new ServerConfirmsUpdate
             {
                 GetUserDto = getUserDto
             });
-        }
-        else
+        } catch (Exception e) when (e is not NotFoundException)
         {
             var user = await userService.GetUserByEmail(email);
-            
-            if (user == null) throw new NotFoundException("User not found");
-            
             socket.SendDto(new ServerRejectsUpdate
             {
                 ErrorMessage = "Update failed",
