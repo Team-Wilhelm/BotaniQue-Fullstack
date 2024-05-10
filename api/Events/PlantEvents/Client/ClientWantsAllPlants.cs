@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using api.EventFilters;
+using api.Events.Collections.Server;
 using api.Events.PlantEvents.Server;
 using api.Extensions;
 using Core.Services;
@@ -20,9 +21,9 @@ public class ClientWantsAllPlants(PlantService plantService, JwtService jwtServi
 {
     public override async Task Handle(ClientWantsAllPlantsDto dto, IWebSocketConnection socket)
     {
-        var email = jwtService.GetEmailFromJwt(dto.Jwt);
+        var email = jwtService.GetEmailFromJwt(dto.Jwt!);
         var plants = await plantService.GetPlantsForUser(email, dto.PageNumber, dto.PageSize);
-        var serverSendsAllPlantsDto = new ServerSendsAllPlants
+        var serverSendsAllPlantsDto = new ServerSendsPlants
         {
             Plants = plants
         };

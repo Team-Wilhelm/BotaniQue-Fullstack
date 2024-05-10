@@ -22,6 +22,7 @@ public static class AddServicesAndRepositoriesExtension
         services.AddSingleton<JwtService>();
         services.AddSingleton<UserService>();
         services.AddSingleton<PlantService>();
+        services.AddSingleton<CollectionsService>();
         services.AddSingleton<ConditionsLogsService>();
         services.AddSingleton<RequirementService>();
         services.AddSingleton<MqttSubscriberService>();

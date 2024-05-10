@@ -15,10 +15,8 @@ public class PlantService(
     IOptions<AzureBlobStorageOptions> azureBlobStorageOptions)
 {
 
-    public async Task<Plant> CreatePlant(CreatePlantDto createPlantDto, string loggedInUserEmail)
+    public async Task<Plant> CreatePlant(CreatePlantDto createPlantDto, string loggedInUser)
     {
-        if (loggedInUserEmail != createPlantDto.UserEmail) throw new NoAccessException("You can't create a plant for another user");
-        
         if (string.IsNullOrEmpty(createPlantDto.Nickname))
         {
             createPlantDto.Nickname = GenerateRandomNickname();
@@ -27,14 +25,14 @@ public class PlantService(
         var ímageUrl = azureBlobStorageOptions.Value.DefaultPlantImageUrl;
         if (createPlantDto.Base64Image is not null)
         {
-            ímageUrl = await blobStorageService.SaveImageToBlobStorage(createPlantDto.Base64Image, createPlantDto.UserEmail);
+            ímageUrl = await blobStorageService.SaveImageToBlobStorage(createPlantDto.Base64Image, loggedInUser);
         }
         
         // Insert plant first to get the plantId
         var plant = new Plant
         {
             PlantId = Guid.NewGuid(),
-            UserEmail = createPlantDto.UserEmail,
+            UserEmail =loggedInUser,
             // CollectionId = Guid.Empty, // TODO: fix when collections are implemented
             Nickname = createPlantDto.Nickname,
             ImageUrl = ímageUrl,
@@ -61,6 +59,13 @@ public class PlantService(
     public async Task<List<Plant>> GetPlantsForUser(string userEmail, int pageNumber, int pageSize)
     {
         var plants = await plantRepository.GetPlantsForUser(userEmail, pageNumber, pageSize);
+        plants.ForEach(plant => plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl)); // Otherwise the client can't access the image
+        return plants;
+    }
+
+    public async Task<List<Plant>> GetPlantsForCollection(Guid collectionId)
+    {
+        var plants = await plantRepository.GetPlantsForCollection(collectionId);
         plants.ForEach(plant => plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl)); // Otherwise the client can't access the image
         return plants;
     }
@@ -103,6 +108,11 @@ public class PlantService(
     {
         var plant = await VerifyPlantExistsAndUserHasAccess(id, requesterEmail);
         await plantRepository.DeletePlant(plant);
+    }
+    
+    public async Task<Guid> GetPlantIdByDeviceIdAsync(string deviceId)
+    {
+        return await plantRepository.GetPlantIdByDeviceIdAsync(deviceId);
     }
     
     private string GenerateRandomNickname()

@@ -31,4 +31,13 @@ public class ConditionsLogsRepository (IDbContextFactory<ApplicationDbContext> d
             return -1;
         }
     }
+
+    public async Task<ConditionsLog?> GetLatestConditionsLogForPlant(Guid plantId)
+    {
+        await using var context = await dbContextFactory.CreateDbContextAsync();
+        return await context.ConditionsLogs
+            .Where(log => log.PlantId == plantId)
+            .OrderByDescending(log => log.TimeStamp)
+            .FirstOrDefaultAsync();
+    }
 }

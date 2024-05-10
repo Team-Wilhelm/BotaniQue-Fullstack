@@ -35,6 +35,15 @@ public class PlantRepository (IDbContextFactory<ApplicationDbContext> dbContextF
             .Take(pageSize)
             .ToListAsync();
     }
+
+    public async Task<List<Plant>> GetPlantsForCollection(Guid collectionId)
+    {
+        await using var context = await dbContextFactory.CreateDbContextAsync();
+        return await context.Plants
+            .Include(plant => plant.Requirements)
+            .Where(p => p.CollectionId == collectionId)
+            .ToListAsync();
+    }
     
     public async Task<Plant> UpdatePlant(Plant plant)
     {

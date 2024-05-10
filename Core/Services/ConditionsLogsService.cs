@@ -5,11 +5,11 @@ using Shared.Models.Information;
 
 namespace Core.Services;
 
-public class ConditionsLogsService (ConditionsLogsRepository conditionsLogsRepository, PlantRepository plantRepository, MqttPublisherService mqttPublisherService)
+public class ConditionsLogsService (ConditionsLogsRepository conditionsLogsRepository, PlantService plantService, RequirementService requirementService ,MqttPublisherService mqttPublisherService)
 {
     public async Task CreateConditionsLogAsync(CreateConditionsLogDto createConditionsLogDto)
     {
-        var plantId = await plantRepository.GetPlantIdByDeviceIdAsync(createConditionsLogDto.DeviceId.ToString());
+        var plantId = await plantService.GetPlantIdByDeviceIdAsync(createConditionsLogDto.DeviceId.ToString());
         
         if (plantId == Guid.Empty)
         {
@@ -26,10 +26,11 @@ public class ConditionsLogsService (ConditionsLogsRepository conditionsLogsRepos
             Light = createConditionsLogDto.Light,
             Temperature = createConditionsLogDto.Temperature,
             Humidity = createConditionsLogDto.Humidity,
-            PlantId = plantId
+            PlantId = plantId,
+            Mood = -1
         };
         
-        var newMood = CalculateMood(conditionsLog);
+        var newMood = await CalculateMood(conditionsLog);
         conditionsLog.Mood = newMood;
 
         await conditionsLogsRepository.CreateConditionsLogAsync(conditionsLog);
@@ -91,18 +92,18 @@ public class ConditionsLogsService (ConditionsLogsRepository conditionsLogsRepos
         };
     }
     
-    private int CalculateMood (ConditionsLog conditionsLog)
+    private async Task<int> CalculateMood (ConditionsLog conditionsLog)
     {
         // Compare ideal requirements for humidity, temperature, soil moisture and light level with actual conditions and calculate mood from 0-4
         // get ideal requirements from plant
-        var requirementsForPlant = plantRepository.GetRequirementsForPlant(conditionsLog.PlantId);
+        var requirementsForPlant = await requirementService.GetRequirements(conditionsLog.PlantId);
         // compare with actual conditions
         var mood = 0;
         // calculate mood
-        mood += CalculateScore((int)requirementsForPlant.Result.HumidityLevel, (int)CalculateHumidityLevel(conditionsLog.Humidity));
-        mood += CalculateScore((int)requirementsForPlant.Result.TemperatureLevel, (int)CalculateTemperatureLevel(conditionsLog.Temperature));
-        mood += CalculateScore((int)requirementsForPlant.Result.SoilMoistureLevel, (int)CalculateSoilMoistureLevel(conditionsLog.SoilMoisture));
-        mood += CalculateScore((int)requirementsForPlant.Result.LightLevel, (int)CalculateLightLevel(conditionsLog.Light));
+        mood += CalculateScore((int)requirementsForPlant.HumidityLevel, (int)CalculateHumidityLevel(conditionsLog.Humidity));
+        mood += CalculateScore((int)requirementsForPlant.TemperatureLevel, (int)CalculateTemperatureLevel(conditionsLog.Temperature));
+        mood += CalculateScore((int)requirementsForPlant.SoilMoistureLevel, (int)CalculateSoilMoistureLevel(conditionsLog.SoilMoisture));
+        mood += CalculateScore((int)requirementsForPlant.LightLevel, (int)CalculateLightLevel(conditionsLog.Light));
         
         if (mood == 0)
         {
@@ -123,5 +124,13 @@ public class ConditionsLogsService (ConditionsLogsRepository conditionsLogsRepos
             default:
                 return 0; // Two away
         }
+    }
+    
+    public async Task<ConditionsLog> GetLatestConditionsLogForPlant(Guid plantId, string loggedInUser)
+    {
+        var plant = await plantService.GetPlantById(plantId, loggedInUser);
+        var conditionsLog = await conditionsLogsRepository.GetLatestConditionsLogForPlant(plantId);
+        if (conditionsLog is null) throw new NotFoundException($"No conditions log found for plant with id {plantId}");
+        return conditionsLog;
     }
 }

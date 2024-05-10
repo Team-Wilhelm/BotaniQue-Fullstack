@@ -20,7 +20,7 @@ public class ClientWantsPlantById(PlantService plantService, JwtService jwtServi
 {
     public override async Task Handle(ClientWantsPlantByIdDto dto, IWebSocketConnection socket)
     {
-        var email = jwtService.GetEmailFromJwt(dto.Jwt);
+        var email = jwtService.GetEmailFromJwt(dto.Jwt!);
         var plant = await plantService.GetPlantById(dto.PlantId, email);
         socket.SendDto(new ServerSendsPlant
         {

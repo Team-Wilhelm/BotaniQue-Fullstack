@@ -106,18 +106,11 @@ public static class Startup
         if (args.Contains("--db-init"))
         {
             var scope = app.Services.CreateScope();
-            var db = app.Services.GetRequiredService<IDbContextFactory<ApplicationDbContext>>().CreateDbContext();
+            var db = await app.Services.GetRequiredService<IDbContextFactory<ApplicationDbContext>>().CreateDbContextAsync();
             await db.Database.EnsureDeletedAsync();
             await db.Database.EnsureCreatedAsync();
             await db.Database.MigrateAsync();
-
-            var userRepository = scope.ServiceProvider.GetRequiredService<UserRepository>();
-            await userRepository.CreateUser(new RegisterUserDto
-            {
-                Email = "bob@app.com",
-                Password = "password",
-                Username = "bob"
-            });
+            await db.SeedDevelopmentDataAsync(scope, app.Configuration["AzureBlob:DefaultPlantImageUrl"] ?? "https://example.com");
         }
 
         var port = Environment.GetEnvironmentVariable("PORT") ?? "8181";
