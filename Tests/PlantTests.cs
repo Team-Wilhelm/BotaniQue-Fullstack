@@ -32,7 +32,7 @@ public class PlantTests : TestBase
             PageSize = 10
         }, receivedMessages =>
         {
-            return receivedMessages.Count(e => e.eventType == nameof(ServerSendsPlantsForCollection)) == 1;
+            return receivedMessages.Count(e => e.eventType == nameof(ServerSendsPlants)) == 1;
         });
     }
     

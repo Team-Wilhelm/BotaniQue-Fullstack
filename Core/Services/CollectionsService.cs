@@ -8,9 +8,9 @@ namespace Core.Services;
 
 public class CollectionsService(CollectionsRepository collectionsRepository, PlantService plantService)
 {
-    public async Task<IEnumerable<GetCollectionDto>> GetCollectionsForUser(string userEmail)
+    public async Task<IEnumerable<GetCollectionDto>> GetCollectionsForUser(string loggedInUser)
     {
-        var collectionsWithoutPlants = await collectionsRepository.GetCollectionsForUser(userEmail);
+        var collectionsWithoutPlants = await collectionsRepository.GetCollectionsForUser(loggedInUser);
         return collectionsWithoutPlants.Select(collection => new GetCollectionDto
         {
             CollectionId = collection.CollectionId,
@@ -18,14 +18,14 @@ public class CollectionsService(CollectionsRepository collectionsRepository, Pla
         });
     }
     
-    public async Task<Collection> GetCollection(Guid collectionId, string userEmail)
+    public async Task<Collection> GetCollection(Guid collectionId, string loggedInUser)
     {
-        return await VerifyCollectionExistsAndUserHasAccess(collectionId, userEmail);
+        return await VerifyCollectionExistsAndUserHasAccess(collectionId, loggedInUser);
     }
     
-    public async Task<IEnumerable<Plant>> GetPlantsInCollection(Guid collectionId, string userEmail)
+    public async Task<IEnumerable<Plant>> GetPlantsInCollection(Guid collectionId, string loggedInUser)
     {
-        await VerifyCollectionExistsAndUserHasAccess(collectionId, userEmail);
+        await VerifyCollectionExistsAndUserHasAccess(collectionId, loggedInUser);
         return await plantService.GetPlantsForCollection(collectionId);
     }
     
@@ -67,11 +67,11 @@ public class CollectionsService(CollectionsRepository collectionsRepository, Pla
         await collectionsRepository.RemovePlantFromCollection(collection, plant);
     }
     
-    private async Task<Collection> VerifyCollectionExistsAndUserHasAccess(Guid collectionId, string userEmail)
+    private async Task<Collection> VerifyCollectionExistsAndUserHasAccess(Guid collectionId, string loggedInUser)
     {
         var collection = await collectionsRepository.GetCollectionWithoutPlants(collectionId);
         if (collection is null) throw new NotFoundException("Collection not found");
-        if (collection.UserEmail != userEmail) throw new NoAccessException("You don't have access to this collection");
+        if (collection.UserEmail != loggedInUser) throw new NoAccessException("You don't have access to this collection");
         return collection;
     }
 }

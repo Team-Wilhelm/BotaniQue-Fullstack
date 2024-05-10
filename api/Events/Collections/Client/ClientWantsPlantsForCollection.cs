@@ -1,4 +1,5 @@
 using api.Events.Collections.Server;
+using api.Events.PlantEvents.Server;
 using api.Extensions;
 using Core.Services;
 using Fleck;
@@ -18,8 +19,9 @@ public class ClientWantsPlantsForCollection(CollectionsService collectionsServic
     {
         var email = jwtService.GetEmailFromJwt(dto.Jwt!);
         var plants = await collectionsService.GetPlantsInCollection(dto.CollectionId, email);
-        socket.SendDto(new ServerSendsPlantsForCollection
+        socket.SendDto(new ServerSendsPlants
         {
+            CollectionId = dto.CollectionId,
             Plants = plants.ToList()
         });
     }

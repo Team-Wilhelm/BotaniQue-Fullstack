@@ -23,7 +23,7 @@ public class ClientWantsAllPlants(PlantService plantService, JwtService jwtServi
     {
         var email = jwtService.GetEmailFromJwt(dto.Jwt!);
         var plants = await plantService.GetPlantsForUser(email, dto.PageNumber, dto.PageSize);
-        var serverSendsAllPlantsDto = new ServerSendsPlantsForCollection
+        var serverSendsAllPlantsDto = new ServerSendsPlants
         {
             Plants = plants
         };
