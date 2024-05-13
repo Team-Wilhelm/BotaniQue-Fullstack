@@ -1,4 +1,5 @@
 ﻿using api.EventFilters;
+using api.Events.Global;
 using api.Extensions;
 using Core.Services;
 using Fleck;
@@ -33,7 +34,7 @@ public class ClientWantsToUpdateProfile (UserService userService, JwtService jwt
             var user = await userService.GetUserByEmail(email);
             socket.SendDto(new ServerRejectsUpdate
             {
-                ErrorMessage = "Update failed",
+                Error = "Update failed",
                 GetUserDto =new GetUserDto
                 {
                     UserEmail = email,
@@ -50,8 +51,7 @@ public class ServerConfirmsUpdate : BaseDto
     public GetUserDto GetUserDto { get; set; } = null!;
 }
 
-public class ServerRejectsUpdate : BaseDto
+public class ServerRejectsUpdate : ServerSendsErrorMessage
 {
-    public string ErrorMessage { get; set; } = null!;
     public GetUserDto? GetUserDto { get; set; }
 }
