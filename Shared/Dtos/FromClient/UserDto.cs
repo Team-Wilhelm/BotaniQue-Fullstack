@@ -2,7 +2,7 @@
 
 namespace Shared.Dtos.FromClient;
 
-public class UpdateUserDto
+public class UserDto
 {
     [MinLength(1)] [MaxLength(50)] public string? Username { get; set; }
     [MinLength(8)] [MaxLength(256)] public string? Password { get; set; }
