@@ -10,16 +10,16 @@ namespace api.Events.PlantEvents.Client;
 
 public class ClientWantsToUpdatePlantDto: BaseDtoWithJwt
 {
-    public UpdatePlantDto UpdatePlantDto { get; set; }
+    public required UpdatePlantDto UpdatePlantDto { get; set; }
 }
 
 public class ClientWantsToUpdatePlant(PlantService plantService, JwtService jwtService): BaseEventHandler<ClientWantsToUpdatePlantDto>
 {
     public override async Task Handle(ClientWantsToUpdatePlantDto dto, IWebSocketConnection socket)
     {
-        var email = jwtService.GetEmailFromJwt(dto.Jwt);
+        var email = jwtService.GetEmailFromJwt(dto.Jwt!);
         var plant = await plantService.UpdatePlant(dto.UpdatePlantDto, email);
-        socket.SendDto(new ServerSendsPlant
+        socket.SendDto(new ServerSavesPlant
         {
             Plant = plant
         });
