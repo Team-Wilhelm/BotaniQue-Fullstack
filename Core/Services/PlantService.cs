@@ -121,12 +121,15 @@ public class PlantService(
         var plants = await plantRepository.GetCriticalPlants(requesterEmail);
         plants.ForEach(plant => plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl));
         
-        var criticalPlants = plants.Select(GetCriticalPlantDto.FromPlant).ToList();
+        var criticalPlants = plants.Select(GetCriticalPlantDto.FromPlant)
+            .Where(plant => plant.Mood < 2)
+            .ToList();
         criticalPlants.ForEach(criticalPlant =>
         {
             var conditionsLog = plants.First(plant => plant.PlantId == criticalPlant.PlantId).ConditionsLogs.FirstOrDefault();
             criticalPlant.SuggestedAction = GetSuggestedAction(conditionsLog);
         });
+        
         return criticalPlants;
     }
     

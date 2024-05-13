@@ -97,7 +97,7 @@ public class PlantRepository(IDbContextFactory<ApplicationDbContext> dbContextFa
         return await context.Plants
             .Include(plant => plant.Requirements)
             .Include(plant => plant.ConditionsLogs)
-            .Where(p => p.UserEmail == requesterEmail)
+            .Where(p => p.UserEmail == requesterEmail && p.ConditionsLogs.Count != 0)
             .Select(p => new
             {
                 Plant = p,
