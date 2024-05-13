@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using Shared.Dtos.FromClient.Plant;
 using Shared.Exceptions;
 using Shared.Models;
+using Shared.Models.Information;
 
 namespace Core.Services;
 
@@ -115,6 +116,20 @@ public class PlantService(
         return await plantRepository.GetPlantIdByDeviceIdAsync(deviceId);
     }
     
+    public async Task<List<GetCriticalPlantDto>> GetCriticalPlants(string requesterEmail)
+    {
+        var plants = await plantRepository.GetCriticalPlants(requesterEmail);
+        plants.ForEach(plant => plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl));
+        
+        var criticalPlants = plants.Select(GetCriticalPlantDto.FromPlant).ToList();
+        criticalPlants.ForEach(criticalPlant =>
+        {
+            var conditionsLog = plants.First(plant => plant.PlantId == criticalPlant.PlantId).ConditionsLogs.FirstOrDefault();
+            criticalPlant.SuggestedAction = GetSuggestedAction(conditionsLog);
+        });
+        return criticalPlants;
+    }
+    
     private string GenerateRandomNickname()
     {
         var firstName = new List<string>
@@ -140,5 +155,47 @@ public class PlantService(
         if (plant == null) throw new NotFoundException("Plant not found");
         if (plant.UserEmail != requesterEmail) throw new NoAccessException("You don't have access to this plant");
         return plant;
+    }
+
+    // TODO: Adjust values and refactor
+    private string GetSuggestedAction(ConditionsLog? conditionsLog)
+    {
+        var suggestedAction = "";
+        if (conditionsLog is null) return suggestedAction;
+        
+        if (conditionsLog.SoilMoisture < 30)
+        {
+            suggestedAction = "More water";
+        }
+        else if (conditionsLog.SoilMoisture > 70)
+        {
+            suggestedAction = "Less water";
+        }
+        if (conditionsLog.Temperature < 10)
+        {
+            suggestedAction = "Warmer place";
+        }
+        else if (conditionsLog.Temperature > 30)
+        {
+            suggestedAction = "Cooler place";
+        }
+        else if (conditionsLog.Humidity < 30)
+        {
+            suggestedAction = "More humidity";
+        }
+        else if (conditionsLog.Humidity > 70)
+        {
+            suggestedAction = "Less humidity";
+        }
+        else if (conditionsLog.Light < 1000)
+        {
+            suggestedAction = "Brighter place";
+        }
+        else if (conditionsLog.Light > 5000)
+        {
+            suggestedAction = "Darker place";
+        } 
+        
+        return suggestedAction;
     }
 }

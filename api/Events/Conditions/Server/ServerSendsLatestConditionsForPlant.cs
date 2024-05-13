@@ -1,7 +1,7 @@
 using lib;
 using Shared.Models.Information;
 
-namespace api.Events.Conditions;
+namespace api.Events.Conditions.Server;
 
 public class ServerSendsLatestConditionsForPlant : BaseDto
 {
