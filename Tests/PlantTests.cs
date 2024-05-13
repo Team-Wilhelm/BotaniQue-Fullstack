@@ -22,7 +22,7 @@ public class PlantTests : TestBase
         
         await webSocketTestClient.DoAndAssert(new ClientWantsToCreatePlantDto { CreatePlantDto = createPlantDto, Jwt = jwt }, receivedMessages =>
         {
-            return receivedMessages.Count(e => e.eventType == nameof(ServerCreatesNewPlant)) == 1;
+            return receivedMessages.Count(e => e.eventType == nameof(ServerSavesPlant)) == 1;
         });
         
         await webSocketTestClient.DoAndAssert(new ClientWantsAllPlantsDto

@@ -22,7 +22,7 @@ public class ClientWantsToCreatePlant(PlantService plantService, JwtService jwtS
         var email = jwtService.GetEmailFromJwt(dto.Jwt!);
         var plant = await plantService.CreatePlant(dto.CreatePlantDto, email);
         
-        var serverCreatesNewPlant = new ServerCreatesNewPlant
+        var serverCreatesNewPlant = new ServerSavesPlant
         {
             Plant = plant
         };
