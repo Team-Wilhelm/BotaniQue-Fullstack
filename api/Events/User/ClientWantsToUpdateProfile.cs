@@ -13,7 +13,7 @@ namespace api.Events.User;
 
 public class ClientWantsToUpdateUserDto : BaseDtoWithJwt
 {
-    public UpdateUserDto UpdateUserDto { get; set; } = null!;
+    public UserDto UserDto { get; set; } = null!;
 }
 
 [ValidateDataAnnotations]
@@ -24,7 +24,7 @@ public class ClientWantsToUpdateProfile (UserService userService, JwtService jwt
         var email = jwtService.GetEmailFromJwt(dto.Jwt);
         try
         {
-            var getUserDto = await userService.UpdateUser(dto.UpdateUserDto, email);
+            var getUserDto = await userService.UpdateUser(dto.UserDto, email);
             socket.SendDto(new ServerConfirmsUpdate
             {
                 GetUserDto = getUserDto

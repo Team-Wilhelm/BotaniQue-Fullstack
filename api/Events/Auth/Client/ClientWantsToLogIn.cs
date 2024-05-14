@@ -34,7 +34,16 @@ public class ClientWantsToLogIn(UserService userService)
         socket.SendDto(new ServerAuthenticatesUser
         {
             Jwt = jwt,
+            
+        });
+        socket.SendDto(new ServerSendsUserInfo
+        {
             GetUserDto = getUserDto
         });
     }
+}
+
+public class ServerSendsUserInfo : BaseDto
+{
+    public GetUserDto GetUserDto { get; set; } = null!;
 }
