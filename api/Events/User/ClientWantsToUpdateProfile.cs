@@ -1,4 +1,4 @@
-﻿using api.EventFilters;
+﻿/*using api.EventFilters;
 using api.Events.Global;
 using api.Extensions;
 using Core.Services;
@@ -32,9 +32,6 @@ public class ClientWantsToUpdateProfile (UserService userService, JwtService jwt
             });
         } catch (Exception e) when (e is not NotFoundException)
         {
-            Log.Error(e.Message, e.InnerException);
-            var user = await userService.GetUserByEmail(email);
-            
             socket.SendDto(new ServerRejectsUpdate
             {
                 Error = "Update failed"
@@ -50,5 +47,4 @@ public class ServerConfirmsUpdate : BaseDto
 
 public class ServerRejectsUpdate : ServerSendsErrorMessage
 {
-    //public GetUserDto? GetUserDto { get; set; }
-}
+}*/

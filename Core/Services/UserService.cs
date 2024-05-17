@@ -35,24 +35,46 @@ public class UserService(UserRepository userRepository, JwtService jwtService, I
         if (user == null) throw new NotFoundException();
         return user;
     }
-
-    public async Task<GetUserDto?> UpdateUser(UserDto userDto, string email)
+    public async Task DeleteProfileImage(string email)
     {
-        var userToUpdate = await userRepository.GetUserByEmail(email);
-        if (userToUpdate == null) throw new NotFoundException("User not found");
+        var user = await ValidateAndGetUser(email);
         
-        if (userDto.Username != null && !userDto.Username.Equals(string.Empty))
-        {
-            userToUpdate.UserName = userDto.Username;
-        }
-       
-        if (userDto.Base64Image == null) return await userRepository.UpdateUser(userToUpdate, userDto.Password);
+        if (user.BlobUrl == null) return;
+
+        await blobStorageService.DeleteImageFromBlobStorage(user.BlobUrl); // TODO check if it need to be sassed first
+        user.BlobUrl = null;
+        await userRepository.UpdateUserProfile(user);
+    }
+
+    public async Task<string> UpdateUserProfileImage(string email, string base64Image)
+    {
+        var userToUpdate = await ValidateAndGetUser(email);
         
         var currentBlobUrl = userToUpdate.BlobUrl;
-        userToUpdate.BlobUrl = await blobStorageService.SaveImageToBlobStorage(userDto.Base64Image, email, false, currentBlobUrl);
-        
-        var user = await userRepository.UpdateUser(userToUpdate, userDto.Password);
-        user.BlobUrl = blobStorageService.GenerateSasUri(user.BlobUrl, false);
+        userToUpdate.BlobUrl = await blobStorageService.SaveImageToBlobStorage(base64Image, email, false, string.IsNullOrEmpty(currentBlobUrl) ? null : currentBlobUrl);
+        await userRepository.UpdateUserProfile(userToUpdate);
+        var blobUrl = blobStorageService.GenerateSasUri(userToUpdate.BlobUrl, false);
+        return blobUrl;
+    }
+    
+    public async Task<string> UpdateUsername(string email, string username)
+    {
+        var userToUpdate = await ValidateAndGetUser(email);
+        userToUpdate.UserName = username;
+        await userRepository.UpdateUserProfile(userToUpdate);
+        return userToUpdate.UserName;
+    }
+    
+    public async Task UpdatePassword(string email, string password)
+    {
+        var userToUpdate = await ValidateAndGetUser(email);
+        await userRepository.UpdatePassword(userToUpdate, password);
+    }
+    
+    private async Task<User> ValidateAndGetUser(string email)
+    {
+        var user = await userRepository.GetUserByEmail(email);
+        if (user == null) throw new NotFoundException("User not found");
         return user;
     }
 }
