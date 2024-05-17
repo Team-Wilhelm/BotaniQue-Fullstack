@@ -4,6 +4,7 @@ using api.Extensions;
 using Core.Services;
 using Fleck;
 using lib;
+using Serilog;
 using Shared.Dtos;
 using Shared.Dtos.FromClient;
 using Shared.Exceptions;
@@ -31,16 +32,12 @@ public class ClientWantsToUpdateProfile (UserService userService, JwtService jwt
             });
         } catch (Exception e) when (e is not NotFoundException)
         {
+            Log.Error(e.Message, e.InnerException);
             var user = await userService.GetUserByEmail(email);
+            
             socket.SendDto(new ServerRejectsUpdate
             {
-                Error = "Update failed",
-                GetUserDto =new GetUserDto
-                {
-                    UserEmail = email,
-                    Username = user.UserName,
-                    BlobUrl = user.BlobUrl
-                }
+                Error = "Update failed"
             });
         }
     }
@@ -53,5 +50,5 @@ public class ServerConfirmsUpdate : BaseDto
 
 public class ServerRejectsUpdate : ServerSendsErrorMessage
 {
-    public GetUserDto? GetUserDto { get; set; }
+    //public GetUserDto? GetUserDto { get; set; }
 }

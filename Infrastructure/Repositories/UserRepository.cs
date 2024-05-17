@@ -65,8 +65,12 @@ public class UserRepository(IDbContextFactory<ApplicationDbContext> dbContextFac
         {
             UserEmail = userToUpdate.UserEmail,
             Username = userToUpdate.UserName,
-            BlobUrl = userToUpdate.BlobUrl
         };
+        
+        if (userToUpdate.BlobUrl != null)
+        {
+            getUserDto.BlobUrl = userToUpdate.BlobUrl;
+        }   
         
         context.Users.Update(userToUpdate);
         await context.SaveChangesAsync();

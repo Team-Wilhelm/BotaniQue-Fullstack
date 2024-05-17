@@ -9,14 +9,15 @@ namespace Core.Services.External.BlobStorage;
 
 public class BlobStorageService(IOptions<AzureBlobStorageOptions> azureBlobStorageOptions) : IBlobStorageService
 { 
-    public async Task<string> SaveImageToBlobStorage(string base64Image, string userEmail, string? blobUrl = null)
+    public async Task<string> SaveImageToBlobStorage(string base64Image, string userEmail, bool isPlantImage, string? blobUrl = null)
     {
         var imageBytes = Convert.FromBase64String(base64Image);
         var blobName = blobUrl is not null 
-            ? GetBlobNameFromUrl(blobUrl) 
+            ? GetBlobNameFromUrl(blobUrl, isPlantImage) 
             : userEmail + "_" + Guid.NewGuid();
        
-        var blobClient = new BlobClient(azureBlobStorageOptions.Value.ConnectionString, azureBlobStorageOptions.Value.PlantImagesContainer, blobName);
+        var container = isPlantImage ? azureBlobStorageOptions.Value.PlantImagesContainer : azureBlobStorageOptions.Value.UserProfileImagesContainer;
+        var blobClient = new BlobClient(azureBlobStorageOptions.Value.ConnectionString, container, blobName);
         var binaryData = new BinaryData(imageBytes);
         await blobClient.UploadAsync(binaryData, true);
         return WebUtility.UrlDecode(blobClient.Uri.ToString());
@@ -41,11 +42,12 @@ public class BlobStorageService(IOptions<AzureBlobStorageOptions> azureBlobStora
         return Convert.ToBase64String(imageBytes);
     }
 
-    public string GenerateSasUri(string blobUrl)
+    public string GenerateSasUri(string blobUrl, bool isPlantImage)
     {
         var blobServiceClient = new BlobServiceClient(azureBlobStorageOptions.Value.ConnectionString);
-        var blobContainerClient = blobServiceClient.GetBlobContainerClient(azureBlobStorageOptions.Value.PlantImagesContainer);
-        var blobClient = blobContainerClient.GetBlobClient(GetBlobNameFromUrl(blobUrl));
+        var container = isPlantImage ? azureBlobStorageOptions.Value.PlantImagesContainer : azureBlobStorageOptions.Value.UserProfileImagesContainer;
+        var blobContainerClient = blobServiceClient.GetBlobContainerClient(container);
+        var blobClient = blobContainerClient.GetBlobClient(GetBlobNameFromUrl(blobUrl, isPlantImage));
         
         var blobSasBuilder = new BlobSasBuilder
         {
@@ -68,8 +70,9 @@ public class BlobStorageService(IOptions<AzureBlobStorageOptions> azureBlobStora
         return blobUriBuilder.ToString();
     }
     
-    private string GetBlobNameFromUrl(string blobUrl)
+    private string GetBlobNameFromUrl(string blobUrl, bool isPlantImage)
     {
-        return WebUtility.UrlDecode(new Uri(blobUrl).AbsolutePath.Substring(azureBlobStorageOptions.Value.PlantImagesContainer.Length + 2));
+        var container = isPlantImage ? azureBlobStorageOptions.Value.PlantImagesContainer : azureBlobStorageOptions.Value.UserProfileImagesContainer;
+        return WebUtility.UrlDecode(new Uri(blobUrl).AbsolutePath.Substring(container.Length + 2));
     }
 }

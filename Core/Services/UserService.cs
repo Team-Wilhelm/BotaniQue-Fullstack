@@ -17,7 +17,7 @@ public class UserService(UserRepository userRepository, JwtService jwtService, I
         
         if (registerUserDto.Base64Image != null)
         {
-            registerUserDto.BlobUrl = await blobStorageService.SaveImageToBlobStorage(registerUserDto.Base64Image, registerUserDto.Email);
+            registerUserDto.BlobUrl = await blobStorageService.SaveImageToBlobStorage(registerUserDto.Base64Image, registerUserDto.Email, false);
         }
        
         await userRepository.CreateUser(registerUserDto);
@@ -45,13 +45,14 @@ public class UserService(UserRepository userRepository, JwtService jwtService, I
         {
             userToUpdate.UserName = userDto.Username;
         }
+       
+        if (userDto.Base64Image == null) return await userRepository.UpdateUser(userToUpdate, userDto.Password);
         
         var currentBlobUrl = userToUpdate.BlobUrl;
-        if (userDto.Base64Image != null)
-        {
-            userDto.BlobUrl = await blobStorageService.SaveImageToBlobStorage(userDto.Base64Image, email, currentBlobUrl);
-        }
+        userToUpdate.BlobUrl = await blobStorageService.SaveImageToBlobStorage(userDto.Base64Image, email, false, currentBlobUrl);
         
-        return await userRepository.UpdateUser(userToUpdate, userDto.Password);
+        var user = await userRepository.UpdateUser(userToUpdate, userDto.Password);
+        user.BlobUrl = blobStorageService.GenerateSasUri(user.BlobUrl, false);
+        return user;
     }
 }

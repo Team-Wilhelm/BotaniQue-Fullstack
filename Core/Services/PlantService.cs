@@ -25,7 +25,7 @@ public class PlantService(
         var ímageUrl = azureBlobStorageOptions.Value.DefaultPlantImageUrl;
         if (createPlantDto.Base64Image is not null)
         {
-            ímageUrl = await blobStorageService.SaveImageToBlobStorage(createPlantDto.Base64Image, loggedInUser);
+            ímageUrl = await blobStorageService.SaveImageToBlobStorage(createPlantDto.Base64Image, loggedInUser, true);
         }
         
         // Insert plant first to get the plantId
@@ -45,28 +45,28 @@ public class PlantService(
         var requirementsDto = createPlantDto.CreateRequirementsDto;
         requirementsDto.PlantId = plant.PlantId;
         plant.Requirements =  await requirementService.CreateRequirements(requirementsDto);
-        plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl);
+        plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl, true);
         return plant;
     }
 
     public async Task<Plant> GetPlantById(Guid id, string requesterEmail)
     {
         var plant = await VerifyPlantExistsAndUserHasAccess(id, requesterEmail);
-        plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl);
+        plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl, true);
         return plant;
     }
     
     public async Task<List<Plant>> GetPlantsForUser(string userEmail, int pageNumber, int pageSize)
     {
         var plants = await plantRepository.GetPlantsForUser(userEmail, pageNumber, pageSize);
-        plants.ForEach(plant => plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl)); // Otherwise the client can't access the image
+        plants.ForEach(plant => plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl, true)); // Otherwise the client can't access the image
         return plants;
     }
 
     public async Task<List<Plant>> GetPlantsForCollection(Guid collectionId)
     {
         var plants = await plantRepository.GetPlantsForCollection(collectionId);
-        plants.ForEach(plant => plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl)); // Otherwise the client can't access the image
+        plants.ForEach(plant => plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl, true)); // Otherwise the client can't access the image
         return plants;
     }
     
@@ -85,7 +85,7 @@ public class PlantService(
         var imageUrl = blobStorageService.GetBlobUrlFromSasUri(plant.ImageUrl);
         if (updatePlantDto.Base64Image is not null)
         {
-          imageUrl = await blobStorageService.SaveImageToBlobStorage(updatePlantDto.Base64Image, requesterEmail, plant.ImageUrl);
+          imageUrl = await blobStorageService.SaveImageToBlobStorage(updatePlantDto.Base64Image, requesterEmail, true, plant.ImageUrl);
         }
         
         // Update the plant
@@ -100,7 +100,7 @@ public class PlantService(
             ConditionsLogs = plant.ConditionsLogs
         };
         
-        plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl);
+        plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl, true);
         return await plantRepository.UpdatePlant(plant);
     }
     
