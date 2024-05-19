@@ -107,7 +107,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         );
 
         var plants = await plantRepository.GetPlantsForUser("bob@app.com", 1, 5);
-        Console.WriteLine(plants.Count);
         
         var requirementsRepository = scope.ServiceProvider.GetRequiredService<RequirementsRepository>();
         var requirements1 = await requirementsRepository.CreateRequirements(
@@ -135,20 +134,41 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             }
         );
         plants[1].Requirements = requirements2;
-
+        
         var conditionsLogRepository = scope.ServiceProvider.GetRequiredService<ConditionsLogsRepository>();
+
+        for (var i = 0; i < 12; i++)
+        {
             await conditionsLogRepository.CreateConditionsLogAsync(
-            new ConditionsLog
-            {
-                ConditionsId = Guid.NewGuid(),
-                PlantId = plants[0].PlantId,
-                TimeStamp = DateTime.UtcNow,
-                Mood = 2,
-                Light = 33.0,
-                SoilMoisture = 74.0,
-                Humidity = 50.0,
-                Temperature = 22.0,
-            }
-        );
+                GetRandomConditionsLog(plants[0].PlantId, i * 6)
+            );
+        }
+    }
+    
+    private double GetRandomLevelValue()
+    {
+        var random = new Random();
+        return random.NextDouble() * 100;
+    }
+    
+    private int GetRandomMood()
+    {
+        var random = new Random();
+        return random.Next(0, 5);
+    }
+    
+    private ConditionsLog GetRandomConditionsLog(Guid plantId, int hoursAgo = 0)
+    {
+        return new ConditionsLog
+        {
+            ConditionsId = Guid.NewGuid(),
+            PlantId = plantId,
+            TimeStamp = DateTime.UtcNow.Subtract(TimeSpan.FromHours(hoursAgo)),
+            Mood = GetRandomMood(),
+            SoilMoisture = GetRandomLevelValue(),
+            Light = GetRandomLevelValue(),
+            Temperature = GetRandomLevelValue(),
+            Humidity = GetRandomLevelValue(),
+        };
     }
 }

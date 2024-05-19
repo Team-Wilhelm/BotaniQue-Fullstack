@@ -33,8 +33,8 @@ public class PlantService(
         var plant = new Plant
         {
             PlantId = Guid.NewGuid(),
-            UserEmail =loggedInUser,
-            // CollectionId = Guid.Empty, // TODO: fix when collections are implemented
+            UserEmail = loggedInUser,
+            CollectionId =  createPlantDto.CollectionId,
             Nickname = createPlantDto.Nickname,
             ImageUrl = ímageUrl,
             DeviceId = createPlantDto.DeviceId

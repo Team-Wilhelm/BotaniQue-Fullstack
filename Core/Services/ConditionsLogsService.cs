@@ -133,4 +133,11 @@ public class ConditionsLogsService (ConditionsLogsRepository conditionsLogsRepos
         if (conditionsLog is null) throw new NotFoundException($"No conditions log found for plant with id {plantId}");
         return conditionsLog;
     }
+
+    public async Task<List<ConditionsLog>> GetConditionsLogsForPlant(Guid dtoPlantId, DateTime dtoStartDate, DateTime dtoEndDate, string loggedInUser)
+    {
+        var plant = plantService.GetPlantById(dtoPlantId, loggedInUser).Result;
+        if (plant == null) throw new NotFoundException("Plant not found");
+        return await conditionsLogsRepository.GetConditionsLogsForPlant(dtoPlantId, dtoStartDate, dtoEndDate);
+    }
 }

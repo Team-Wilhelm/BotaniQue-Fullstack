@@ -40,4 +40,15 @@ public class ConditionsLogsRepository (IDbContextFactory<ApplicationDbContext> d
             .OrderByDescending(log => log.TimeStamp)
             .FirstOrDefaultAsync();
     }
+
+    public async Task<List<ConditionsLog>> GetConditionsLogsForPlant(Guid plantId, DateTime startDate, DateTime endDate)
+    {
+        await using var context = await dbContextFactory.CreateDbContextAsync();
+        return await context.ConditionsLogs
+            .Where(log => log.PlantId == plantId)
+            .OrderByDescending(log => log.TimeStamp) // Order by timestamp in descending order to get the most recent logs first
+            .Where(log => log.TimeStamp >= startDate && log.TimeStamp <= endDate) // Filter by date range
+            .OrderBy(log => log.TimeStamp) // Order by timestamp in ascending order for the final result
+            .ToListAsync();
+    }
 }
