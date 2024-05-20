@@ -16,7 +16,7 @@ public class ClientWantsPlaceholderUrl(IOptions<AzureBlobStorageOptions> blobOpt
     public override Task Handle(ClientWantsPlaceholderUrlDto dto, IWebSocketConnection socket)
     {
         var placeholderUrl = blobOptions.Value.DefaultPlantImageUrl;
-        var sasUri = blobStorageService.GenerateSasUri(placeholderUrl);
+        var sasUri = blobStorageService.GenerateSasUri(placeholderUrl, true);
         socket.SendDto(new ServerSendsPlaceholderUrl
         {
             PlaceholderUrl = sasUri

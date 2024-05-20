@@ -120,7 +120,7 @@ public class PlantService(
     public async Task<List<GetCriticalPlantDto>> GetCriticalPlants(string requesterEmail)
     {
         var plants = await plantRepository.GetCriticalPlants(requesterEmail);
-        plants.ForEach(plant => plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl));
+        plants.ForEach(plant => plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl, true));
 
         var criticalPlants = plants.Select(GetCriticalPlantDto.FromPlant)
             .Where(plant => plant.Mood < 2)
