@@ -33,6 +33,7 @@ public class PlantRepository(IDbContextFactory<ApplicationDbContext> dbContextFa
             .Include(plant => plant.Requirements)
             .Include(plant => plant.ConditionsLogs.OrderByDescending(log => log.TimeStamp).Take(1))
             .Where(p => p.UserEmail == userEmail)
+            .OrderByDescending(p => p.LatestChange)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();

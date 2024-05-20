@@ -37,7 +37,8 @@ public class PlantService(
             CollectionId =  createPlantDto.CollectionId,
             Nickname = createPlantDto.Nickname,
             ImageUrl = ímageUrl,
-            DeviceId = createPlantDto.DeviceId
+            DeviceId = createPlantDto.DeviceId,
+            LatestChange = DateTime.UtcNow
         };
         
         await plantRepository.CreatePlant(plant);
@@ -98,7 +99,8 @@ public class PlantService(
             Nickname = updatePlantDto.Nickname ?? plant.Nickname,
             ImageUrl = imageUrl,
             Requirements = requirements,
-            ConditionsLogs = plant.ConditionsLogs
+            ConditionsLogs = plant.ConditionsLogs,
+            LatestChange = DateTime.UtcNow
         };
         
         plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl);

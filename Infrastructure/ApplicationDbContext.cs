@@ -92,6 +92,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 UserEmail = "bob@app.com",
                 ImageUrl = defaultPlantImage,
                 CollectionId = collection1.CollectionId,
+                LatestChange = DateTime.UtcNow.Subtract(TimeSpan.FromDays(5))
             }
         );
 
@@ -103,6 +104,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 UserEmail = "bob@app.com",
                 ImageUrl = defaultPlantImage,
                 CollectionId = collection2.CollectionId,
+                LatestChange = DateTime.UtcNow.Subtract(TimeSpan.FromDays(7))
             }
         );
 
@@ -117,7 +119,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 LightLevel = RequirementLevel.Low,
                 SoilMoistureLevel = RequirementLevel.Medium,
                 HumidityLevel = RequirementLevel.High,
-                TemperatureLevel = RequirementLevel.Medium,
+                TemperatureLevel = 22,
             }
         );
         plants[0].Requirements = requirements1;
@@ -130,7 +132,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 LightLevel = RequirementLevel.High,
                 SoilMoistureLevel = RequirementLevel.Low,
                 HumidityLevel = RequirementLevel.Low,
-                TemperatureLevel = RequirementLevel.Medium,
+                TemperatureLevel = 27,
             }
         );
         plants[1].Requirements = requirements2;
@@ -157,6 +159,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         return random.Next(0, 5);
     }
     
+    private int GetRandomTemperature()
+    {
+        var random = new Random();
+        return random.Next(-20, 45);
+    }
+    
     private ConditionsLog GetRandomConditionsLog(Guid plantId, int hoursAgo = 0)
     {
         return new ConditionsLog
@@ -167,7 +175,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             Mood = GetRandomMood(),
             SoilMoisture = GetRandomLevelValue(),
             Light = GetRandomLevelValue(),
-            Temperature = GetRandomLevelValue(),
+            Temperature = GetRandomTemperature(),
             Humidity = GetRandomLevelValue(),
         };
     }

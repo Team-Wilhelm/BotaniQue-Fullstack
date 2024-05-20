@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Shared.Dtos.FromClient.Requirements;
 
 namespace Shared.Models.Information;
@@ -8,7 +9,8 @@ public class Requirements
     public Guid PlantId { get; set; }
     public RequirementLevel SoilMoistureLevel { get; set; }
     public RequirementLevel LightLevel { get; set; }
-    public RequirementLevel TemperatureLevel { get; set; }
+    [Range(-20, 45)]
+    public double TemperatureLevel { get; set; }
     public RequirementLevel HumidityLevel { get; set; }
    
     public Requirements()
