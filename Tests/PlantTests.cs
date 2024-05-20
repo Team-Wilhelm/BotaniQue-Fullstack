@@ -47,7 +47,7 @@ public class PlantTests : TestBase
             {
                 SoilMoistureLevel = RequirementLevel.Low,
                 LightLevel = RequirementLevel.Medium,
-                TemperatureLevel = RequirementLevel.High,
+                TemperatureLevel = 25,
                 HumidityLevel = RequirementLevel.Low
             }
         };

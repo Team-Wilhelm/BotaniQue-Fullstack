@@ -7,17 +7,19 @@ namespace Core.Services;
 
 public class ConditionsLogsService (ConditionsLogsRepository conditionsLogsRepository, PlantService plantService, RequirementService requirementService ,MqttPublisherService mqttPublisherService)
 {
+    private const int TemperatureTolerance = 1;
+    
     public async Task CreateConditionsLogAsync(CreateConditionsLogDto createConditionsLogDto)
     {
         var plantId = await plantService.GetPlantIdByDeviceIdAsync(createConditionsLogDto.DeviceId.ToString());
-        
+
         if (plantId == Guid.Empty)
         {
             throw new RegisterDeviceException();
         }
-        
+
         var recentMood = conditionsLogsRepository.GetRecentMoodAsync(plantId).Result;
-        
+
         var conditionsLog = new ConditionsLog
         {
             ConditionsId = new Guid(),
@@ -29,13 +31,12 @@ public class ConditionsLogsService (ConditionsLogsRepository conditionsLogsRepos
             PlantId = plantId,
             Mood = -1
         };
-        
+
         var newMood = await CalculateMood(conditionsLog);
         conditionsLog.Mood = newMood;
 
         await conditionsLogsRepository.CreateConditionsLogAsync(conditionsLog);
-        
-        
+
         if (newMood != recentMood)
         {
             //TODO send Event to mobile app
@@ -48,82 +49,104 @@ public class ConditionsLogsService (ConditionsLogsRepository conditionsLogsRepos
         }
     }
     
-    private RequirementLevel CalculateTemperatureLevel (double value)
-    {
-        return value switch
-        {
-            //TODO fix these values
-            < 1 => RequirementLevel.Low,
-            > 2 => RequirementLevel.High,
-            _ => RequirementLevel.Medium
-        };
-    }
-    
-    private RequirementLevel CalculateLightLevel (double value)
-    {
-        return value switch
-        {
-            //TODO fix these values
-            < 1 => RequirementLevel.Low,
-            > 2 => RequirementLevel.High,
-            _ => RequirementLevel.Medium
-        };
-    }
-    
-    private RequirementLevel CalculateSoilMoistureLevel (double value)
-    {
-        return value switch
-        {
-            //TODO fix these values
-            < 1 => RequirementLevel.Low,
-            > 2 => RequirementLevel.High,
-            _ => RequirementLevel.Medium
-        };
-    }
-    
-    private RequirementLevel CalculateHumidityLevel (double value)
-    {
-        return value switch
-        {
-            //TODO fix these values
-            < 1 => RequirementLevel.Low,
-            > 2 => RequirementLevel.High,
-            _ => RequirementLevel.Medium
-        };
-    }
-    
+    // TODO: make this more sensitive
     private async Task<int> CalculateMood (ConditionsLog conditionsLog)
     {
-        // Compare ideal requirements for humidity, temperature, soil moisture and light level with actual conditions and calculate mood from 0-4
-        // get ideal requirements from plant
         var requirementsForPlant = await requirementService.GetRequirements(conditionsLog.PlantId);
-        // compare with actual conditions
         var mood = 0;
-        // calculate mood
-        mood += CalculateScore((int)requirementsForPlant.HumidityLevel, (int)CalculateHumidityLevel(conditionsLog.Humidity));
-        mood += CalculateScore((int)requirementsForPlant.TemperatureLevel, (int)CalculateTemperatureLevel(conditionsLog.Temperature));
-        mood += CalculateScore((int)requirementsForPlant.SoilMoistureLevel, (int)CalculateSoilMoistureLevel(conditionsLog.SoilMoisture));
-        mood += CalculateScore((int)requirementsForPlant.LightLevel, (int)CalculateLightLevel(conditionsLog.Light));
-        
-        if (mood == 0)
+
+        var idealSoilMoisture = requirementsForPlant.SoilMoistureLevel.GetRange();
+        if (idealSoilMoisture.Min <= conditionsLog.SoilMoisture && conditionsLog.SoilMoisture <= idealSoilMoisture.Max)
         {
-            return 0;
+            mood++;
         }
-        return mood / 4;
+        
+        var idealTemperature = requirementsForPlant.TemperatureLevel;
+        if (idealTemperature - 5 <= conditionsLog.Temperature && conditionsLog.Temperature <= idealTemperature + 5)
+        {
+            mood++;
+        }
+        
+        var idealHumidity = requirementsForPlant.HumidityLevel.GetRange();
+        if (idealHumidity.Min <= conditionsLog.Humidity && conditionsLog.Humidity <= idealHumidity.Max)
+        {
+            mood++;
+        }
+        
+        var idealLight = requirementsForPlant.LightLevel.GetRange();
+        if (idealLight.Min <= conditionsLog.Light && conditionsLog.Light <= idealLight.Max)
+        {
+            mood++;
+        }
+        
+        return mood;
     }
     
-    private int CalculateScore(int ideal, int actual)
+    public static KeyValuePair<RequirementType, double>? GetMostCriticalRequirement(Requirements idealRequirements, ConditionsLog conditionsLog)
     {
-        var difference = Math.Abs(ideal - actual);
-        switch (difference)
-        {
-            case 0:
-                return 4; // Exact match
-            case 1:
-                return 2; // One away
-            default:
-                return 0; // Two away
-        }
+       var notInIdealRange = new Dictionary<RequirementType, double>();
+       
+        // Soil Moisture
+         if (!idealRequirements.SoilMoistureLevel.IsInRange(conditionsLog.SoilMoisture))
+         {
+              notInIdealRange.Add(RequirementType.SoilMoisture, 0);
+              
+              // Check if below or above ideal value
+              var idealSoilMoisture = idealRequirements.SoilMoistureLevel.GetRange();
+              var smaller = conditionsLog.SoilMoisture < idealSoilMoisture.Min;
+
+              if (smaller) notInIdealRange[RequirementType.SoilMoisture] = idealSoilMoisture.Min - conditionsLog.SoilMoisture;
+              else notInIdealRange[RequirementType.SoilMoisture] = conditionsLog.SoilMoisture - idealSoilMoisture.Max;
+         }
+         
+         // Temperature
+         if (Math.Abs(idealRequirements.TemperatureLevel - conditionsLog.Temperature) > TemperatureTolerance)
+         {
+             notInIdealRange.Add(RequirementType.Temperature, 0);
+             
+             // Check if below or above ideal value
+             var idealTemperature = idealRequirements.TemperatureLevel;
+             var smaller = conditionsLog.Temperature < idealTemperature;
+
+             if (smaller) notInIdealRange[RequirementType.Temperature] = idealTemperature - conditionsLog.Temperature;
+             else notInIdealRange[RequirementType.Temperature] = conditionsLog.Temperature - idealTemperature;
+         }
+         
+         // Humidity
+         if (!idealRequirements.HumidityLevel.IsInRange(conditionsLog.Humidity))
+         {
+             notInIdealRange.Add(RequirementType.Humidity, 0);
+             
+             // Check if below or above ideal value
+             var idealHumidity = idealRequirements.HumidityLevel.GetRange();
+             var smaller = conditionsLog.Humidity < idealHumidity.Min;
+
+             if (smaller) notInIdealRange[RequirementType.Humidity] = idealHumidity.Min - conditionsLog.Humidity;
+             else notInIdealRange[RequirementType.Humidity] = conditionsLog.Humidity - idealHumidity.Max;
+         }
+         
+         // Light
+         if (!idealRequirements.LightLevel.IsInRange(conditionsLog.Light))
+         {
+             notInIdealRange.Add(RequirementType.Light, 0);
+             
+             // Check if below or above ideal value
+             var idealLight = idealRequirements.LightLevel.GetRange();
+             var  smaller = conditionsLog.Light < idealLight.Min;
+
+             if (smaller) notInIdealRange[RequirementType.Light] = idealLight.Min - conditionsLog.Light;
+             else notInIdealRange[RequirementType.Light] = conditionsLog.Light - idealLight.Max;
+         }
+         
+        
+         // The higher the difference from the ideal state, the more critical the requirement
+         try
+         {
+             return notInIdealRange.MaxBy(suggestion => suggestion.Value);
+         } catch (InvalidOperationException)
+         {
+             return null;
+         }
     }
     
     public async Task<ConditionsLog> GetLatestConditionsLogForPlant(Guid plantId, string loggedInUser)
@@ -132,5 +155,12 @@ public class ConditionsLogsService (ConditionsLogsRepository conditionsLogsRepos
         var conditionsLog = await conditionsLogsRepository.GetLatestConditionsLogForPlant(plantId);
         if (conditionsLog is null) throw new NotFoundException($"No conditions log found for plant with id {plantId}");
         return conditionsLog;
+    }
+
+    public async Task<List<ConditionsLog>> GetConditionsLogsForPlant(Guid dtoPlantId, int timeSpanInDays, string loggedInUser)
+    {
+        var plant = plantService.GetPlantById(dtoPlantId, loggedInUser).Result;
+        if (plant == null) throw new NotFoundException("Plant not found");
+        return await conditionsLogsRepository.GetConditionsLogsForPlant(dtoPlantId, timeSpanInDays);
     }
 }

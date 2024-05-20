@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using Shared.Dtos.FromClient.Plant;
 using Shared.Exceptions;
 using Shared.Models;
+using Shared.Models.Information;
 
 namespace Core.Services;
 
@@ -14,7 +15,6 @@ public class PlantService(
     IBlobStorageService blobStorageService,
     IOptions<AzureBlobStorageOptions> azureBlobStorageOptions)
 {
-
     public async Task<Plant> CreatePlant(CreatePlantDto createPlantDto, string loggedInUser)
     {
         if (string.IsNullOrEmpty(createPlantDto.Nickname))
@@ -32,11 +32,12 @@ public class PlantService(
         var plant = new Plant
         {
             PlantId = Guid.NewGuid(),
-            UserEmail =loggedInUser,
-            // CollectionId = Guid.Empty, // TODO: fix when collections are implemented
+            UserEmail = loggedInUser,
+            CollectionId = createPlantDto.CollectionId,
             Nickname = createPlantDto.Nickname,
             ImageUrl = ímageUrl,
-            DeviceId = createPlantDto.DeviceId
+            DeviceId = createPlantDto.DeviceId,
+            LatestChange = DateTime.UtcNow
         };
         
         await plantRepository.CreatePlant(plant);
@@ -44,7 +45,7 @@ public class PlantService(
         // Create requirements for the plant to crete a link between the two
         var requirementsDto = createPlantDto.CreateRequirementsDto;
         requirementsDto.PlantId = plant.PlantId;
-        plant.Requirements =  await requirementService.CreateRequirements(requirementsDto);
+        plant.Requirements = await requirementService.CreateRequirements(requirementsDto);
         plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl, true);
         return plant;
     }
@@ -97,7 +98,8 @@ public class PlantService(
             Nickname = updatePlantDto.Nickname ?? plant.Nickname,
             ImageUrl = imageUrl,
             Requirements = requirements,
-            ConditionsLogs = plant.ConditionsLogs
+            ConditionsLogs = plant.ConditionsLogs,
+            LatestChange = DateTime.UtcNow
         };
         
         plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl, true);
@@ -114,7 +116,25 @@ public class PlantService(
     {
         return await plantRepository.GetPlantIdByDeviceIdAsync(deviceId);
     }
-    
+
+    public async Task<List<GetCriticalPlantDto>> GetCriticalPlants(string requesterEmail)
+    {
+        var plants = await plantRepository.GetCriticalPlants(requesterEmail);
+        plants.ForEach(plant => plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl, true));
+
+        var criticalPlants = plants.Select(GetCriticalPlantDto.FromPlant)
+            .Where(plant => plant.Mood < 2)
+            .ToList();
+        criticalPlants.ForEach(criticalPlant =>
+        {
+            var conditionsLog = plants.First(plant => plant.PlantId == criticalPlant.PlantId).ConditionsLogs
+                .FirstOrDefault();
+            criticalPlant.SuggestedAction = GetSuggestedAction(criticalPlant.Requirements, conditionsLog);
+        });
+
+        return criticalPlants;
+    }
+
     private string GenerateRandomNickname()
     {
         var firstName = new List<string>
@@ -140,5 +160,32 @@ public class PlantService(
         if (plant == null) throw new NotFoundException("Plant not found");
         if (plant.UserEmail != requesterEmail) throw new NoAccessException("You don't have access to this plant");
         return plant;
+    }
+
+    // TODO: Consider multiple suggestions
+    private string? GetSuggestedAction(Requirements idealRequirements, ConditionsLog? conditionsLog)
+    {
+        if (conditionsLog is null) return null;
+
+        var mostCriticalRequirement =
+            ConditionsLogsService.GetMostCriticalRequirement(idealRequirements, conditionsLog);
+        if (mostCriticalRequirement is null) return null; // No need to suggest anything if everything is perfect
+
+        switch (mostCriticalRequirement.Value.Key)
+        {
+            case RequirementType.SoilMoisture:
+                var idealSoilMoisture = idealRequirements.SoilMoistureLevel.GetRange();
+                return conditionsLog.SoilMoisture < idealSoilMoisture.Min ? "More water" : "Less water";
+            case RequirementType.Temperature:
+                return  conditionsLog.Temperature < idealRequirements.TemperatureLevel ? "Warmer place" : "Cooler place";
+            case RequirementType.Humidity:
+                var idealHumidity = idealRequirements.HumidityLevel.GetRange();
+                return conditionsLog.Humidity < idealHumidity.Min ? "More humidity" : "Less humidity";
+            case RequirementType.Light:
+                var idealLight = idealRequirements.LightLevel.GetRange();
+                return conditionsLog.Light < idealLight.Min ? "More light" : "Less light";
+            default:
+                throw new ArgumentException("Unknown requirement type");
+        }
     }
 }
