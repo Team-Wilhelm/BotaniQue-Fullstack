@@ -1,3 +1,5 @@
+using Shared.Models.Information;
+
 namespace Shared.Models;
 
 public class GetCriticalPlantDto
@@ -7,6 +9,7 @@ public class GetCriticalPlantDto
     public required string ImageUrl { get; set; }
     public required int Mood { get; set; }
     public string? SuggestedAction { get; set; }
+    public required Requirements Requirements { get; set; }
     
     public static GetCriticalPlantDto FromPlant(Plant plant)
     {
@@ -18,7 +21,8 @@ public class GetCriticalPlantDto
             PlantId = plant.PlantId,
             Nickname = plant.Nickname,
             ImageUrl = plant.ImageUrl,
-            Mood = mood
+            Mood = mood,
+            Requirements = plant.Requirements!
         };
     }
 }

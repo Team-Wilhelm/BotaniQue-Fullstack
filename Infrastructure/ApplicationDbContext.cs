@@ -108,63 +108,102 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             }
         );
 
+        await plantRepository.CreatePlant(
+            new Plant
+            {
+                PlantId = Guid.NewGuid(),
+                Nickname = "Dying plant",
+                UserEmail = "bob@app.com",
+                ImageUrl = defaultPlantImage,
+                CollectionId = collection2.CollectionId,
+                LatestChange = DateTime.UtcNow
+            }
+        );
+
         var plants = await plantRepository.GetPlantsForUser("bob@app.com", 1, 5);
-        
+
         var requirementsRepository = scope.ServiceProvider.GetRequiredService<RequirementsRepository>();
-        var requirements1 = await requirementsRepository.CreateRequirements(
+        await requirementsRepository.CreateRequirements(
             new Requirements
             {
                 RequirementsId = Guid.NewGuid(),
-                PlantId = plants[0].PlantId,
+                PlantId = plants.First(p => p.Nickname == "Aloe Vera").PlantId,
                 LightLevel = RequirementLevel.Low,
                 SoilMoistureLevel = RequirementLevel.Medium,
                 HumidityLevel = RequirementLevel.High,
                 TemperatureLevel = 22,
             }
         );
-        plants[0].Requirements = requirements1;
-        
-        var requirements2 = await requirementsRepository.CreateRequirements(
+
+      await requirementsRepository.CreateRequirements(
             new Requirements
             {
                 RequirementsId = Guid.NewGuid(),
-                PlantId = plants[1].PlantId,
+                PlantId =  plants.First(p => p.Nickname == "Prickly Pear").PlantId,
                 LightLevel = RequirementLevel.High,
                 SoilMoistureLevel = RequirementLevel.Low,
                 HumidityLevel = RequirementLevel.Low,
                 TemperatureLevel = 27,
             }
         );
-        plants[1].Requirements = requirements2;
-        
+      
+       await requirementsRepository.CreateRequirements(
+            new Requirements
+            {
+                RequirementsId = Guid.NewGuid(),
+                PlantId =  plants.First(p => p.Nickname == "Dying plant").PlantId,
+                LightLevel = RequirementLevel.High,
+                SoilMoistureLevel = RequirementLevel.Low,
+                HumidityLevel = RequirementLevel.Medium,
+                TemperatureLevel = 24,
+            }
+        );
+
         var conditionsLogRepository = scope.ServiceProvider.GetRequiredService<ConditionsLogsRepository>();
 
         for (var i = 0; i < 12; i++)
         {
             await conditionsLogRepository.CreateConditionsLogAsync(
-                GetRandomConditionsLog(plants[0].PlantId, i * 6)
+                GetRandomConditionsLog(plants.First(p => p.Nickname == "Prickly Pear").PlantId, i * 6)
+            );
+            await conditionsLogRepository.CreateConditionsLogAsync(
+                GetRandomConditionsLog(plants.First(p => p.Nickname == "Aloe Vera").PlantId, i * 6)
             );
         }
+
+        await conditionsLogRepository.CreateConditionsLogAsync(
+            new ConditionsLog()
+            {
+                ConditionsId = Guid.NewGuid(),
+                PlantId = plants.First(p => p.Nickname == "Dying plant").PlantId,
+                TimeStamp = DateTime.UtcNow,
+                Mood = -1,
+                SoilMoisture = 55,
+                Light = 13,
+                Humidity = 68,
+                Temperature = 25,
+            }
+        );
     }
-    
+
     private double GetRandomLevelValue()
     {
         var random = new Random();
         return random.NextDouble() * 100;
     }
-    
+
     private int GetRandomMood()
     {
         var random = new Random();
         return random.Next(0, 5);
     }
-    
+
     private int GetRandomTemperature()
     {
         var random = new Random();
         return random.Next(-20, 45);
     }
-    
+
     private ConditionsLog GetRandomConditionsLog(Guid plantId, int hoursAgo = 0)
     {
         return new ConditionsLog

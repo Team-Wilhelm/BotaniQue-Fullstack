@@ -27,7 +27,7 @@ public class Requirements
         TemperatureLevel = createRequirementsDto.TemperatureLevel;
         HumidityLevel = createRequirementsDto.HumidityLevel;
     }
-    
+
     public Requirements(UpdateRequirementDto updateRequirementDto, Guid plantId)
     {
         RequirementsId = updateRequirementDto.RequirementsId;
