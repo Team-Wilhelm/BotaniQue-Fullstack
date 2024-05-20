@@ -157,10 +157,10 @@ public class ConditionsLogsService (ConditionsLogsRepository conditionsLogsRepos
         return conditionsLog;
     }
 
-    public async Task<List<ConditionsLog>> GetConditionsLogsForPlant(Guid dtoPlantId, DateTime dtoStartDate, DateTime dtoEndDate, string loggedInUser)
+    public async Task<List<ConditionsLog>> GetConditionsLogsForPlant(Guid dtoPlantId, int timeSpanInDays, string loggedInUser)
     {
         var plant = plantService.GetPlantById(dtoPlantId, loggedInUser).Result;
         if (plant == null) throw new NotFoundException("Plant not found");
-        return await conditionsLogsRepository.GetConditionsLogsForPlant(dtoPlantId, dtoStartDate, dtoEndDate);
+        return await conditionsLogsRepository.GetConditionsLogsForPlant(dtoPlantId, timeSpanInDays);
     }
 }

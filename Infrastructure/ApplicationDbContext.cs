@@ -161,7 +161,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         var conditionsLogRepository = scope.ServiceProvider.GetRequiredService<ConditionsLogsRepository>();
 
-        for (var i = 0; i < 12; i++)
+        for (var i = 0; i < 100; i++)
         {
             await conditionsLogRepository.CreateConditionsLogAsync(
                 GetRandomConditionsLog(plants.First(p => p.Nickname == "Prickly Pear").PlantId, i * 6)
@@ -177,13 +177,17 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 ConditionsId = Guid.NewGuid(),
                 PlantId = plants.First(p => p.Nickname == "Dying plant").PlantId,
                 TimeStamp = DateTime.UtcNow,
-                Mood = -1,
+                Mood = 0,
                 SoilMoisture = 55,
                 Light = 13,
                 Humidity = 68,
                 Temperature = 25,
             }
         );
+        
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine("Seeded development data");
+        Console.ResetColor();
     }
 
     private double GetRandomLevelValue()

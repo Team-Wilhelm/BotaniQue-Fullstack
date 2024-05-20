@@ -10,8 +10,7 @@ namespace api.Events.Conditions.Client;
 public class ClientWantsHistoricConditionLogsForPlantDto : BaseDtoWithJwt
 {
     public required Guid PlantId { get; set; }
-    public required DateTime StartDate { get; set; }
-    public required DateTime EndDate { get; set; }
+    public required int TimeSpanInDays { get; set; }
 }
 
 public class ClientWantsHistoricConditionLogsForPlant(JwtService jwtService, ConditionsLogsService conditionsLogsService) : BaseEventHandler<ClientWantsHistoricConditionLogsForPlantDto>
@@ -19,7 +18,7 @@ public class ClientWantsHistoricConditionLogsForPlant(JwtService jwtService, Con
     public override async Task Handle(ClientWantsHistoricConditionLogsForPlantDto dto, IWebSocketConnection socket)
     {
         var email = jwtService.GetEmailFromJwt(dto.Jwt!);
-        var conditionsLogs = await conditionsLogsService.GetConditionsLogsForPlant(dto.PlantId, dto.StartDate, dto.EndDate, email);
+        var conditionsLogs = await conditionsLogsService.GetConditionsLogsForPlant(dto.PlantId, dto.TimeSpanInDays, email);
         socket.SendDto(new ServerSendsHistoricConditionLogsForPlantDto
         {
             ConditionsLogs = conditionsLogs
