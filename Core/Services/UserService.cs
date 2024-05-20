@@ -17,7 +17,7 @@ public class UserService(UserRepository userRepository, JwtService jwtService, I
         
         if (registerUserDto.Base64Image != null)
         {
-            registerUserDto.BlobUrl = await blobStorageService.SaveImageToBlobStorage(registerUserDto.Base64Image, registerUserDto.Email);
+            registerUserDto.BlobUrl = await blobStorageService.SaveImageToBlobStorage(registerUserDto.Base64Image, registerUserDto.Email, false);
         }
        
         await userRepository.CreateUser(registerUserDto);
@@ -35,23 +35,47 @@ public class UserService(UserRepository userRepository, JwtService jwtService, I
         if (user == null) throw new NotFoundException();
         return user;
     }
-
-    public async Task<GetUserDto?> UpdateUser(UpdateUserDto updateUserDto, string email)
+    public async Task DeleteProfileImage(string email)
     {
-        var userToUpdate = await userRepository.GetUserByEmail(email);
-        if (userToUpdate == null) throw new NotFoundException("User not found");
+        var user = await ValidateAndGetUser(email);
         
-        if (updateUserDto.Username != null && !updateUserDto.Username.Equals(string.Empty))
-        {
-            userToUpdate.UserName = updateUserDto.Username;
-        }
+        if (user.BlobUrl == null) return;
+        
+        var blobToDelete = blobStorageService.GetBlobUrlFromSasUri(user.BlobUrl);
+        await blobStorageService.DeleteImageFromBlobStorage(blobToDelete, false);
+        user.BlobUrl = null;
+        await userRepository.UpdateUserProfile(user);
+    }
+
+    public async Task<string> UpdateUserProfileImage(string email, string base64Image)
+    {
+        var userToUpdate = await ValidateAndGetUser(email);
         
         var currentBlobUrl = userToUpdate.BlobUrl;
-        if (updateUserDto.Base64Image != null)
-        {
-            updateUserDto.BlobUrl = await blobStorageService.SaveImageToBlobStorage(updateUserDto.Base64Image, email, currentBlobUrl);
-        }
-        
-        return await userRepository.UpdateUser(userToUpdate, updateUserDto.Password);
+        userToUpdate.BlobUrl = await blobStorageService.SaveImageToBlobStorage(base64Image, email, false, string.IsNullOrEmpty(currentBlobUrl) ? null : currentBlobUrl);
+        await userRepository.UpdateUserProfile(userToUpdate);
+        var blobUrl = blobStorageService.GenerateSasUri(userToUpdate.BlobUrl, false);
+        return blobUrl;
+    }
+    
+    public async Task<string> UpdateUsername(string email, string username)
+    {
+        var userToUpdate = await ValidateAndGetUser(email);
+        userToUpdate.UserName = username;
+        await userRepository.UpdateUserProfile(userToUpdate);
+        return userToUpdate.UserName;
+    }
+    
+    public async Task UpdatePassword(string email, string password)
+    {
+        var userToUpdate = await ValidateAndGetUser(email);
+        await userRepository.UpdatePassword(userToUpdate, password);
+    }
+    
+    private async Task<User> ValidateAndGetUser(string email)
+    {
+        var user = await userRepository.GetUserByEmail(email);
+        if (user == null) throw new NotFoundException("User not found");
+        return user;
     }
 }

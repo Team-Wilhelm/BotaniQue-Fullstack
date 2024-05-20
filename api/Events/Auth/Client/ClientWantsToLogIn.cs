@@ -1,6 +1,7 @@
 using api.Events.Auth.Server;
 using api.Extensions;
 using Core.Services;
+using Core.Services.External.BlobStorage;
 using Fleck;
 using lib;
 using Shared.Dtos;
@@ -14,7 +15,7 @@ public class ClientWantsToLogInDto : BaseDto
     public LoginDto LoginDto { get; set; } = null!;
 }
 
-public class ClientWantsToLogIn(UserService userService)
+public class ClientWantsToLogIn(UserService userService, IBlobStorageService blobStorageService)
     : BaseEventHandler<ClientWantsToLogInDto>
 {
     public override async Task Handle(ClientWantsToLogInDto dto, IWebSocketConnection socket)
@@ -28,13 +29,26 @@ public class ClientWantsToLogIn(UserService userService)
         {
             UserEmail = user.UserEmail,
             Username = user.UserName,
-            BlobUrl = user.BlobUrl
         };
+        
+        if (!string.IsNullOrEmpty(user.BlobUrl))
+        {
+            getUserDto.BlobUrl = blobStorageService.GenerateSasUri(user.BlobUrl, false);
+        }
         
         socket.SendDto(new ServerAuthenticatesUser
         {
             Jwt = jwt,
+            
+        });
+        socket.SendDto(new ServerSendsUserInfo
+        {
             GetUserDto = getUserDto
         });
     }
+}
+
+public class ServerSendsUserInfo : BaseDto
+{
+    public GetUserDto GetUserDto { get; set; } = null!;
 }

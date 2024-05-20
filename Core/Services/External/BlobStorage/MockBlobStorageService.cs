@@ -2,12 +2,12 @@ namespace Core.Services.External.BlobStorage;
 
 public class MockBlobStorageService : IBlobStorageService
 {
-    public Task<string> SaveImageToBlobStorage(string base64Image, string userEmail, string? blobUrl = null)
+    public Task<string> SaveImageToBlobStorage(string base64Image, string userEmail, bool isPlantImage, string? blobUrl = null)
     {
         return Task.FromResult("https://www.example.com");
     }
 
-    public Task<bool> DeleteImageFromBlobStorage(string imageUrl)
+    public Task<bool> DeleteImageFromBlobStorage(string imageUrl, bool isPlantImage)
     {
         return Task.FromResult(true);
     }
@@ -17,7 +17,7 @@ public class MockBlobStorageService : IBlobStorageService
         return Task.FromResult("base64Image");
     }
     
-    public string GenerateSasUri(string blobUrl)
+    public string GenerateSasUri(string blobUrl, bool isPlantImage)
     {
         return "https://www.example.com";
     }

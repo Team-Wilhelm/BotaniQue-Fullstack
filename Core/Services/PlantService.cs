@@ -25,9 +25,9 @@ public class PlantService(
         var ímageUrl = azureBlobStorageOptions.Value.DefaultPlantImageUrl;
         if (createPlantDto.Base64Image is not null)
         {
-            ímageUrl = await blobStorageService.SaveImageToBlobStorage(createPlantDto.Base64Image, loggedInUser);
+            ímageUrl = await blobStorageService.SaveImageToBlobStorage(createPlantDto.Base64Image, loggedInUser, true);
         }
-
+        
         // Insert plant first to get the plantId
         var plant = new Plant
         {
@@ -39,42 +39,38 @@ public class PlantService(
             DeviceId = createPlantDto.DeviceId,
             LatestChange = DateTime.UtcNow
         };
-
+        
         await plantRepository.CreatePlant(plant);
 
         // Create requirements for the plant to crete a link between the two
         var requirementsDto = createPlantDto.CreateRequirementsDto;
         requirementsDto.PlantId = plant.PlantId;
         plant.Requirements = await requirementService.CreateRequirements(requirementsDto);
-        plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl);
+        plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl, true);
         return plant;
     }
 
     public async Task<Plant> GetPlantById(Guid id, string requesterEmail)
     {
         var plant = await VerifyPlantExistsAndUserHasAccess(id, requesterEmail);
-        plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl);
+        plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl, true);
         return plant;
     }
-
+    
     public async Task<List<Plant>> GetPlantsForUser(string userEmail, int pageNumber, int pageSize)
     {
         var plants = await plantRepository.GetPlantsForUser(userEmail, pageNumber, pageSize);
-        plants.ForEach(plant =>
-            plant.ImageUrl =
-                blobStorageService.GenerateSasUri(plant.ImageUrl)); // Otherwise the client can't access the image
+        plants.ForEach(plant => plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl, true)); // Otherwise the client can't access the image
         return plants;
     }
 
     public async Task<List<Plant>> GetPlantsForCollection(Guid collectionId)
     {
         var plants = await plantRepository.GetPlantsForCollection(collectionId);
-        plants.ForEach(plant =>
-            plant.ImageUrl =
-                blobStorageService.GenerateSasUri(plant.ImageUrl)); // Otherwise the client can't access the image
+        plants.ForEach(plant => plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl, true)); // Otherwise the client can't access the image
         return plants;
     }
-
+    
     public async Task<Plant> UpdatePlant(UpdatePlantDto updatePlantDto, string requesterEmail)
     {
         var plant = await VerifyPlantExistsAndUserHasAccess(updatePlantDto.PlantId, requesterEmail);
@@ -83,18 +79,16 @@ public class PlantService(
         var requirements = plant.Requirements;
         if (updatePlantDto.UpdateRequirementDto is not null)
         {
-            requirements =
-                await requirementService.UpdateRequirements(updatePlantDto.UpdateRequirementDto, plant.PlantId);
+            requirements = await requirementService.UpdateRequirements(updatePlantDto.UpdateRequirementDto, plant.PlantId);
         }
-
+        
         // The urls coming from the client are SAS urls, so we need to convert them to normal urls
         var imageUrl = blobStorageService.GetBlobUrlFromSasUri(plant.ImageUrl);
         if (updatePlantDto.Base64Image is not null)
         {
-            imageUrl = await blobStorageService.SaveImageToBlobStorage(updatePlantDto.Base64Image, requesterEmail,
-                plant.ImageUrl);
+          imageUrl = await blobStorageService.SaveImageToBlobStorage(updatePlantDto.Base64Image, requesterEmail, true, plant.ImageUrl);
         }
-
+        
         // Update the plant
         plant = new Plant
         {
@@ -107,17 +101,17 @@ public class PlantService(
             ConditionsLogs = plant.ConditionsLogs,
             LatestChange = DateTime.UtcNow
         };
-
-        plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl);
+        
+        plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl, true);
         return await plantRepository.UpdatePlant(plant);
     }
-
+    
     public async Task DeletePlant(Guid id, string requesterEmail)
     {
         var plant = await VerifyPlantExistsAndUserHasAccess(id, requesterEmail);
         await plantRepository.DeletePlant(plant);
     }
-
+    
     public async Task<Guid> GetPlantIdByDeviceIdAsync(string deviceId)
     {
         return await plantRepository.GetPlantIdByDeviceIdAsync(deviceId);
@@ -145,22 +139,21 @@ public class PlantService(
     {
         var firstName = new List<string>
         {
-            "Alice", "Bob", "Charlie", "Daisy", "Edward", "Fiona", "George", "Mallory", "Rose", "Fern", "Jeppe",
-            "Rasmus", "Alex"
+            "Alice", "Bob", "Charlie", "Daisy", "Edward", "Fiona", "George", "Mallory", "Rose", "Fern", "Jeppe", "Rasmus", "Alex"
         };
         var lastName = new List<string>
         {
             "Leaf", "Sprout", "Root", "Petal", "Bud", "Bloom", "Thistle", "Stem", "Twig", "Green", "Bush"
         };
-
+        
         var random = new Random();
         var randomHumanName = firstName[random.Next(firstName.Count)];
         var randomPlantName = lastName[random.Next(lastName.Count)];
         var plantNickname = $"{randomHumanName} {randomPlantName}";
-
+        
         return plantNickname;
     }
-
+    
     private async Task<Plant> VerifyPlantExistsAndUserHasAccess(Guid plantId, string requesterEmail)
     {
         var plant = await plantRepository.GetPlantById(plantId);
