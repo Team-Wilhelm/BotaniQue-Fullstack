@@ -7,7 +7,7 @@ public class MockBlobStorageService : IBlobStorageService
         return Task.FromResult("https://www.example.com");
     }
 
-    public Task<bool> DeleteImageFromBlobStorage(string imageUrl)
+    public Task<bool> DeleteImageFromBlobStorage(string imageUrl, bool isPlantImage)
     {
         return Task.FromResult(true);
     }

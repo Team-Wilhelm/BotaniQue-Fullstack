@@ -31,7 +31,7 @@ public class ClientWantsToLogIn(UserService userService, IBlobStorageService blo
             Username = user.UserName,
         };
         
-        if (user.BlobUrl != null)
+        if (!string.IsNullOrEmpty(user.BlobUrl))
         {
             getUserDto.BlobUrl = blobStorageService.GenerateSasUri(user.BlobUrl, false);
         }

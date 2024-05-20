@@ -20,7 +20,7 @@ public class ClientWantsToUpdateUsername(UserService userService, JwtService jwt
         var email = jwtService.GetEmailFromJwt(dto.Jwt);
         try
         {
-            var username = await userService.UpdateUsername(dto.Username, email);
+            var username = await userService.UpdateUsername(email, dto.Username);
             socket.SendDto(new ServerConfirmsUpdateUsername
             {
                 Username = username

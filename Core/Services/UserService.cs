@@ -40,8 +40,9 @@ public class UserService(UserRepository userRepository, JwtService jwtService, I
         var user = await ValidateAndGetUser(email);
         
         if (user.BlobUrl == null) return;
-
-        await blobStorageService.DeleteImageFromBlobStorage(user.BlobUrl); // TODO check if it need to be sassed first
+        
+        var blobToDelete = blobStorageService.GetBlobUrlFromSasUri(user.BlobUrl);
+        await blobStorageService.DeleteImageFromBlobStorage(blobToDelete, false);
         user.BlobUrl = null;
         await userRepository.UpdateUserProfile(user);
     }

@@ -23,9 +23,12 @@ public class BlobStorageService(IOptions<AzureBlobStorageOptions> azureBlobStora
         return WebUtility.UrlDecode(blobClient.Uri.ToString());
     }
     
-    public async Task<bool> DeleteImageFromBlobStorage(string imageUrl)
+    public async Task<bool> DeleteImageFromBlobStorage(string blobUrl, bool isPlantImage)
     {
-        var blobClient = new BlobClient(new Uri(imageUrl));
+        var blobName = GetBlobNameFromUrl(blobUrl, isPlantImage);
+       
+        var container = isPlantImage ? azureBlobStorageOptions.Value.PlantImagesContainer : azureBlobStorageOptions.Value.UserProfileImagesContainer;
+        var blobClient = new BlobClient(azureBlobStorageOptions.Value.ConnectionString, container, blobName);
         return await blobClient.DeleteIfExistsAsync();
     }
     
