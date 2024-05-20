@@ -39,6 +39,16 @@ public class CollectionsRepository(IDbContextFactory<ApplicationDbContext> dbCon
     public async Task DeleteCollection(Collection collection)
     {
         await using var applicationDbContext = await dbContextFactory.CreateDbContextAsync();
+        
+        // Remove the collection reference from plants
+        var plantsToUpdate = await applicationDbContext.Plants
+            .Where(p => p.CollectionId == collection.CollectionId)
+            .ToListAsync();
+
+        foreach (var plant in plantsToUpdate)
+        {
+            plant.CollectionId = null;
+        }
         applicationDbContext.Collections.Remove(collection);
         await applicationDbContext.SaveChangesAsync();
     }
