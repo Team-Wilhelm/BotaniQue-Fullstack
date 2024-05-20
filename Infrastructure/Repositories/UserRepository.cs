@@ -49,28 +49,20 @@ public class UserRepository(IDbContextFactory<ApplicationDbContext> dbContextFac
 
         return user;
     }
-
-    public async Task<GetUserDto?> UpdateUser(User userToUpdate, string? password)
+    public async Task UpdateUserProfile(User userToUpdate)
     {
         await using var context = await dbContextFactory.CreateDbContextAsync();
-        
-        if (password != null && !password.Equals(string.Empty))
-        {
-            var passwordHashAndSalt = PasswordHasher.HashPassword(password);
-            userToUpdate.PasswordHash = passwordHashAndSalt[1];
-            userToUpdate.PasswordSalt = passwordHashAndSalt[0];
-        }
-        
-        var getUserDto = new GetUserDto
-        {
-            UserEmail = userToUpdate.UserEmail,
-            Username = userToUpdate.UserName,
-            BlobUrl = userToUpdate.BlobUrl
-        };
-        
         context.Users.Update(userToUpdate);
         await context.SaveChangesAsync();
-
-        return getUserDto;
+    }
+    
+    public async Task UpdatePassword(User userToUpdate, string password)
+    {
+        await using var context = await dbContextFactory.CreateDbContextAsync();
+        var passwordHashAndSalt = PasswordHasher.HashPassword(password);
+        userToUpdate.PasswordHash = passwordHashAndSalt[1];
+        userToUpdate.PasswordSalt = passwordHashAndSalt[0];
+        context.Users.Update(userToUpdate);
+        await context.SaveChangesAsync();
     }
 }
