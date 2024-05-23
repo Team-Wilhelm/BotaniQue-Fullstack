@@ -18,18 +18,9 @@ public class ClientWantsToDeleteCollection(CollectionsService collectionsService
 {
     public override async Task Handle(ClientWantsToDeleteCollectionDto dto, IWebSocketConnection socket)
     {
-        try
-        {
-            var email = jwtService.GetEmailFromJwt(dto.Jwt!);
-            await collectionsService.DeleteCollection(dto.CollectionId, email);
-            socket.SendDto(new ServerDeletesCollection());
-        }
-        catch (Exception e) when (e is not NotFoundException)
-        {
-            socket.SendDto(new ServerRejectsUpdate
-            {
-                Error = "Could not delete collection. Please try again later."
-            });
-        }
+        var email = jwtService.GetEmailFromJwt(dto.Jwt!);
+        await collectionsService.DeleteCollection(dto.CollectionId, email);
+        socket.SendDto(new ServerDeletesCollection());
+        
     }
 }
