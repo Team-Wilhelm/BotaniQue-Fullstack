@@ -40,4 +40,32 @@ public class ConditionsLogsRepository (IDbContextFactory<ApplicationDbContext> d
             .OrderByDescending(log => log.TimeStamp)
             .FirstOrDefaultAsync();
     }
+
+    public async Task<List<ConditionsLog>> GetConditionsLogsForPlant(Guid plantId, int timeSpanInDays)
+    {
+        await using var context = await dbContextFactory.CreateDbContextAsync();
+        var logs = await context.ConditionsLogs
+            .Where(log => log.PlantId == plantId && log.TimeStamp >= DateTime.UtcNow.AddDays(-timeSpanInDays))
+            .ToListAsync();
+
+        var groupedLogs = logs
+            .GroupBy(log => new DateTime(log.TimeStamp.Year, log.TimeStamp.Month, timeSpanInDays == 365 ? 1 : log.TimeStamp.Day))
+            .Select(group => new ConditionsLog
+            {
+                TimeStamp = group.Key,
+                Temperature  = group.Average(log => log.Temperature),
+                Light = group.Average(log => log.Light),
+                SoilMoisture = group.Average(log => log.SoilMoisture),
+                Humidity = group.Average(log => log.Humidity),
+                Mood = (int) group.Average(log => log.Mood),
+                ConditionsId = Guid.Empty, // This is okay, we won't interact with the grouped values, just display them in the UI
+                PlantId = plantId
+            })
+            .OrderBy(log => log.TimeStamp)
+            .ToList();
+
+        return groupedLogs;
+    }
+    
+    
 }

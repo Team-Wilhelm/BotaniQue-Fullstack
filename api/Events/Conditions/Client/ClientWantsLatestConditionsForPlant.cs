@@ -1,10 +1,11 @@
+using api.Events.Conditions.Server;
 using api.Extensions;
 using Core.Services;
 using Fleck;
 using lib;
 using Shared.Models;
 
-namespace api.Events.Conditions;
+namespace api.Events.Conditions.Client;
 
 public class ClientWantsLatestConditionsForPlantDto : BaseDtoWithJwt
 {

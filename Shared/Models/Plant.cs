@@ -12,4 +12,5 @@ public class Plant
     public required string ImageUrl { get; set; }
     public Requirements? Requirements { get; set; }
     public List<ConditionsLog> ConditionsLogs { get; set; } = new();
+    public required DateTime LatestChange { get; set; }
 }
