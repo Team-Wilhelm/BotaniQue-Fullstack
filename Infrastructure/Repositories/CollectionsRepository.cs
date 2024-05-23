@@ -49,6 +49,7 @@ public class CollectionsRepository(IDbContextFactory<ApplicationDbContext> dbCon
         {
             plant.CollectionId = null;
         }
+        applicationDbContext.Plants.UpdateRange(plantsToUpdate);
         applicationDbContext.Collections.Remove(collection);
         await applicationDbContext.SaveChangesAsync();
     }
