@@ -1,4 +1,5 @@
 using Infrastructure.Repositories;
+using Serilog;
 using Shared.Dtos;
 using Shared.Dtos.FromClient.Collections;
 using Shared.Exceptions;
