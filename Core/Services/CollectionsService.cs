@@ -50,16 +50,8 @@ public class CollectionsService(CollectionsRepository collectionsRepository, Pla
     
     public async Task DeleteCollection(Guid collectionId, string loggedInUser)
     {
-        try
-        {
-            var collection = await VerifyCollectionExistsAndUserHasAccess(collectionId, loggedInUser);
-            await collectionsRepository.DeleteCollection(collection);
-        }
-        catch (Exception e)
-        {
-            Log.Error(e.Message, e.InnerException);
-            throw new AppException("Failed to delete collection.");
-        }
+        var collection = await VerifyCollectionExistsAndUserHasAccess(collectionId, loggedInUser);
+        await collectionsRepository.DeleteCollection(collection);
     }
     
     public async Task AddPlantToCollection(Guid collectionId, Guid plantId, string loggedInUser)
