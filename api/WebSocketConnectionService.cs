@@ -20,8 +20,8 @@ public class WebSocketConnectionService
         _connectedClients.Remove(clientId);
     }
 
-    public ClientConnection? GetConnectionByEmail(string email)
+    public IWebSocketConnection? GetConnectionByEmail(string email)
     {
-        return _connectedClients.Values.FirstOrDefault(clientConnection => clientConnection.Email == email);
+        return _connectedClients.Values.FirstOrDefault(clientConnection => clientConnection.Email == email)?.Connection;
     }
 }

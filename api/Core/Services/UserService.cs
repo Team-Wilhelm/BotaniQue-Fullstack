@@ -70,7 +70,7 @@ public class UserService(UserRepository userRepository, JwtService jwtService, I
         await userRepository.UpdatePassword(userToUpdate, password);
     }
     
-    public async Task<string?> GetEmailFromDeviceId(string deviceId)
+    public async Task<string> GetEmailFromDeviceId(string deviceId)
     {
         var userEmail = await userRepository.GetUserByDeviceId(deviceId);
         if (userEmail == null) throw new NotFoundException("User not found for this device");

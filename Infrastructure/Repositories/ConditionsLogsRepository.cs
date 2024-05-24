@@ -5,11 +5,12 @@ namespace Infrastructure.Repositories;
 
 public class ConditionsLogsRepository (IDbContextFactory<ApplicationDbContext> dbContextFactory)
 {
-    public async Task CreateConditionsLogAsync(ConditionsLog conditionsLog)
+    public async Task<ConditionsLog> CreateConditionsLogAsync(ConditionsLog conditionsLog)
     {
         await using var context = await dbContextFactory.CreateDbContextAsync();
-        await context.ConditionsLogs.AddAsync(conditionsLog);
+        var entityEntry = await context.ConditionsLogs.AddAsync(conditionsLog);
         await context.SaveChangesAsync();
+        return entityEntry.Entity;
     }
 
     public async Task<int> GetRecentMoodAsync(Guid plantId)
