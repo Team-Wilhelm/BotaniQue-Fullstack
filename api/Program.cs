@@ -147,14 +147,6 @@ public static class Startup
                         {
                             throw new NotAuthenticatedException("JWT token is not valid. Please log in.");
                         }
-
-                        var email = jwtService.GetEmailFromJwt(dto.Jwt);
-                        var connectionService = app.Services.GetRequiredService<WebSocketConnectionService>();
-                        var clientConnection = connectionService.GetConnectionByEmail(email);
-                        if (clientConnection == null)
-                        {
-                            connectionService.AddConnection(socket, email);
-                        }
                     }
 
                     await app.InvokeClientEventHandler(services, socket, message);

@@ -10,13 +10,6 @@ public class WebSocketConnectionService
     public void AddConnection(IWebSocketConnection connection, string email)
     {
         var clientId = connection.ConnectionInfo.Id;
-        var existingConnection = _connectedClients.Values.FirstOrDefault(clientConnection => clientConnection.Email == email);
-
-        if (existingConnection != null)
-        {
-            _connectedClients.Remove(existingConnection.Connection.ConnectionInfo.Id);
-        }
-
         _connectedClients.TryAdd(clientId, new ClientConnection(connection, email));
     }
 

@@ -15,7 +15,7 @@ public class ClientWantsToLogInDto : BaseDto
     public LoginDto LoginDto { get; set; } = null!;
 }
 
-public class ClientWantsToLogIn(UserService userService, IBlobStorageService blobStorageService)
+public class ClientWantsToLogIn(WebSocketConnectionService webSocketConnectionService, UserService userService, IBlobStorageService blobStorageService)
     : BaseEventHandler<ClientWantsToLogInDto>
 {
     public override async Task Handle(ClientWantsToLogInDto dto, IWebSocketConnection socket)
@@ -24,6 +24,8 @@ public class ClientWantsToLogIn(UserService userService, IBlobStorageService blo
         if (jwt == null) throw new InvalidCredentialsException();
 
         var user = await userService.GetUserByEmail(dto.LoginDto.Email);
+        
+        webSocketConnectionService.AddConnection(socket, dto.LoginDto.Email);
         
         var getUserDto = new GetUserDto
         {
