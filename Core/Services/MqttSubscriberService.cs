@@ -12,11 +12,13 @@ public class MqttSubscriberService
 {
     private readonly IOptions<MqttOptions> _options;
     private readonly ConditionsLogsService _conditionsLogService;
+    private readonly JsonSerializerOptions _jsonSerializerOptions;
 
     public MqttSubscriberService(IOptions<MqttOptions> options, ConditionsLogsService conditionsLogService)
     {
         _options = options;
         _conditionsLogService = conditionsLogService;
+        _jsonSerializerOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
         if (string.IsNullOrEmpty(_options.Value.Username) || _options.Value.Username == "FILL_ME_IN")
             throw new Exception("MQTT username not set in appsettings.json");
@@ -36,7 +38,7 @@ public class MqttSubscriberService
         {
             var payload = Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment);
             var conditions = JsonSerializer.Deserialize<CreateConditionsLogDto>(payload, options:
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                _jsonSerializerOptions);
             
             if (conditions is null) return;
             

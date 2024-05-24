@@ -5,7 +5,7 @@ using Shared.Models.Information;
 
 namespace Core.Services;
 
-public class ConditionsLogsService (ConditionsLogsRepository conditionsLogsRepository, PlantService plantService, RequirementService requirementService ,MqttPublisherService mqttPublisherService)
+public class ConditionsLogsService (UserService userService, ConditionsLogsRepository conditionsLogsRepository, PlantService plantService, RequirementService requirementService ,MqttPublisherService mqttPublisherService)
 {
     private const int TemperatureTolerance = 1;
     
@@ -39,13 +39,18 @@ public class ConditionsLogsService (ConditionsLogsRepository conditionsLogsRepos
 
         if (newMood != recentMood)
         {
-            //TODO send Event to mobile app
+            var email = await userService.GetEmailFromDeviceId(createConditionsLogDto.DeviceId.ToString());
+            //get connection by email
+            if (!string.IsNullOrEmpty(email))
+            {
+                //TODO send event here
+            }
+            
             var moodDto = new MoodDto
             {
                 Mood = newMood,
             };
-            var deviceId = createConditionsLogDto.DeviceId;
-            await mqttPublisherService.PublishAsync(moodDto, deviceId);
+            await mqttPublisherService.PublishAsync(moodDto, createConditionsLogDto.DeviceId);
         }
     }
     

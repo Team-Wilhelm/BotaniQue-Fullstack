@@ -65,4 +65,13 @@ public class UserRepository(IDbContextFactory<ApplicationDbContext> dbContextFac
         context.Users.Update(userToUpdate);
         await context.SaveChangesAsync();
     }
+
+    public async Task<string?> GetUserByDeviceId(string deviceId)
+    {
+        await using var context = await dbContextFactory.CreateDbContextAsync();
+        return await context.Users
+            .Where(u => u.Plants.Any(p => p.DeviceId == deviceId))
+            .Select(u => u.UserEmail)
+            .FirstOrDefaultAsync();
+    }
 }

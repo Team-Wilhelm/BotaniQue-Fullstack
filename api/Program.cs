@@ -119,14 +119,20 @@ public static class Startup
 
         wsServer.Start(socket =>
         {
-            socket.OnOpen = () => app.Services.GetRequiredService<WebSocketConnectionService>().AddConnection(socket);
+            socket.OnOpen = () =>
+            {
+                var jwtService = app.Services.GetRequiredService<JwtService>();
+                var jwt = socket.ConnectionInfo.Path.TrimStart('/');
+                if (!jwtService.IsJwtTokenValid(jwt)) return;
+                var email = jwtService.GetEmailFromJwt(jwt);
+                app.Services.GetRequiredService<WebSocketConnectionService>().AddConnection(socket, email);
+            };
             socket.OnClose = () => app.Services.GetRequiredService<WebSocketConnectionService>().RemoveConnection(socket);
             socket.OnMessage = async message =>
             {
                 Log.Information("Received message: {message}", message);
                 try
                 {
-                    // Check if the message contains a JWT token and if it is valid
                     var dto = JsonSerializer.Deserialize<BaseDtoWithJwt>(message, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     if (dto is not null && PublicEvents.Contains(dto.eventType) == false)
                     {
@@ -134,15 +140,23 @@ public static class Startup
                         {
                             throw new NotAuthenticatedException("JWT token is missing. Please log in.");
                         }
-                        
+
                         var jwtService = app.Services.GetRequiredService<JwtService>();
                         var jwtValid = jwtService.IsJwtTokenValid(dto.Jwt);
                         if (!jwtValid)
                         {
                             throw new NotAuthenticatedException("JWT token is not valid. Please log in.");
                         }
+
+                        var email = jwtService.GetEmailFromJwt(dto.Jwt);
+                        var connectionService = app.Services.GetRequiredService<WebSocketConnectionService>();
+                        var clientConnection = connectionService.GetConnectionByEmail(email);
+                        if (clientConnection == null)
+                        {
+                            connectionService.AddConnection(socket, email);
+                        }
                     }
-                    
+
                     await app.InvokeClientEventHandler(services, socket, message);
                 }
                 catch (Exception e)
