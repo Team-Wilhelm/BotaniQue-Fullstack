@@ -3,7 +3,7 @@ using Shared.Dtos.FromClient.Requirements;
 using Shared.Exceptions;
 using Shared.Models.Information;
 
-namespace Core.Services;
+namespace api.Core.Services;
 
 public class RequirementService(RequirementsRepository requirementsRepository)
 {

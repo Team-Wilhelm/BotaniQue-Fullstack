@@ -1,9 +1,9 @@
 using System.Reflection;
 using System.Text.Json;
+using api.Core.Options;
+using api.Core.Services;
 using api.Events.Auth.Client;
 using api.Extensions;
-using Core.Options;
-using Core.Services;
 using Fleck;
 using Infrastructure;
 using Infrastructure.Repositories;

@@ -1,12 +1,12 @@
 using System.Text;
 using System.Text.Json;
-using Core.Options;
+using api.Core.Options;
 using Microsoft.Extensions.Options;
 using MQTTnet;
 using MQTTnet.Client;
 using Shared.Dtos;
 
-namespace Core.Services;
+namespace api.Core.Services;
 
 public class MqttSubscriberService
 {
@@ -36,7 +36,7 @@ public class MqttSubscriberService
         
         mqttClient.ApplicationMessageReceivedAsync += async e =>
         {
-            var payload = Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment);
+            var payload = Encoding.UTF8.GetString((ReadOnlySpan<byte>)e.ApplicationMessage.PayloadSegment);
             var conditions = JsonSerializer.Deserialize<CreateConditionsLogDto>(payload, options:
                 _jsonSerializerOptions);
             

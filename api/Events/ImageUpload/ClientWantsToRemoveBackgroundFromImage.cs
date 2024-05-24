@@ -1,5 +1,5 @@
+using api.Core.Services.External.BackgroundRemoval;
 using api.Extensions;
-using Core.Services.External;
 using Fleck;
 using lib;
 using Shared.Exceptions;

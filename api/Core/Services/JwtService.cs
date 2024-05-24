@@ -1,5 +1,5 @@
 using System.Security.Authentication;
-using Core.Options;
+using api.Core.Options;
 using JWT;
 using JWT.Algorithms;
 using JWT.Serializers;
@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 using Serilog;
 using Shared.Models.Identity;
 
-namespace Core.Services;
+namespace api.Core.Services;
 
 public class JwtService(IOptions<JwtOptions> jwtOptions)
 {

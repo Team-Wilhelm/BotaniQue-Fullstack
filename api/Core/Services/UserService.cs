@@ -1,12 +1,10 @@
-using Core.Services.External.BlobStorage;
+using api.Core.Services.External.BlobStorage;
 using Infrastructure.Repositories;
-using Shared.Dtos;
-using Shared.Dtos.FromClient;
 using Shared.Dtos.FromClient.Identity;
 using Shared.Exceptions;
 using Shared.Models.Identity;
 
-namespace Core.Services;
+namespace api.Core.Services;
 
 public class UserService(UserRepository userRepository, JwtService jwtService, IBlobStorageService blobStorageService)
 {

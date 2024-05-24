@@ -1,5 +1,5 @@
-﻿using Core.Options;
-using Core.Services.External.BlobStorage;
+﻿using api.Core.Options;
+using api.Core.Services.External.BlobStorage;
 using Infrastructure.Repositories;
 using Microsoft.Extensions.Options;
 using Shared.Dtos.FromClient.Plant;
@@ -7,7 +7,7 @@ using Shared.Exceptions;
 using Shared.Models;
 using Shared.Models.Information;
 
-namespace Core.Services;
+namespace api.Core.Services;
 
 public class PlantService(
     PlantRepository plantRepository,

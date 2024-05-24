@@ -1,11 +1,10 @@
 using Infrastructure.Repositories;
-using Serilog;
 using Shared.Dtos;
 using Shared.Dtos.FromClient.Collections;
 using Shared.Exceptions;
 using Shared.Models;
 
-namespace Core.Services;
+namespace api.Core.Services;
 
 public class CollectionsService(CollectionsRepository collectionsRepository, PlantService plantService)
 {

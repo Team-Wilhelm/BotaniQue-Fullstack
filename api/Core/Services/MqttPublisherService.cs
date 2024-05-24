@@ -1,11 +1,11 @@
 ﻿using System.Text.Json;
-using Core.Options;
+using api.Core.Options;
 using Microsoft.Extensions.Options;
 using MQTTnet;
 using MQTTnet.Client;
 using Shared.Dtos;
 
-namespace Core.Services;
+namespace api.Core.Services;
 
 public class MqttPublisherService
 {

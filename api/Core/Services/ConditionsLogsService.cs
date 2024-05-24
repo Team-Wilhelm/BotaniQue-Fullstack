@@ -3,7 +3,7 @@ using Shared.Dtos;
 using Shared.Exceptions;
 using Shared.Models.Information;
 
-namespace Core.Services;
+namespace api.Core.Services;
 
 public class ConditionsLogsService (UserService userService, ConditionsLogsRepository conditionsLogsRepository, PlantService plantService, RequirementService requirementService ,MqttPublisherService mqttPublisherService)
 {

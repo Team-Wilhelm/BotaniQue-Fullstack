@@ -1,11 +1,11 @@
 using System.Net;
+using api.Core.Options;
 using Azure.Storage.Blobs;
 using Azure.Storage.Sas;
-using Core.Options;
 using Microsoft.Extensions.Options;
 using Shared.Exceptions;
 
-namespace Core.Services.External.BlobStorage;
+namespace api.Core.Services.External.BlobStorage;
 
 public class BlobStorageService(IOptions<AzureBlobStorageOptions> azureBlobStorageOptions) : IBlobStorageService
 { 

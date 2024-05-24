@@ -20,4 +20,10 @@
         <PackageReference Include="Serilog" Version="3.1.1"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Options\" />
+      <Folder Include="Services\External\BackgroundRemoval\" />
+      <Folder Include="Services\External\BlobStorage\" />
+    </ItemGroup>
+
 </Project>

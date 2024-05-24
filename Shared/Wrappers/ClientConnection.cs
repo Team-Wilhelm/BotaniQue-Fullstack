@@ -1,6 +1,6 @@
 ﻿using Fleck;
 
-namespace Shared;
+namespace Shared.Wrappers;
 
 public class ClientConnection(IWebSocketConnection connection, string email)
 {

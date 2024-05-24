@@ -1,4 +1,4 @@
-namespace Core.Services.External.BlobStorage;
+namespace api.Core.Services.External.BlobStorage;
 
 public class MockBlobStorageService : IBlobStorageService
 {
