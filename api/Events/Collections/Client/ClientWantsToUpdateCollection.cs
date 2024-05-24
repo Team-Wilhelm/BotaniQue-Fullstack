@@ -19,9 +19,10 @@ public class ClientWantsToUpdateCollection(CollectionsService collectionsService
     {
         var email = jwtService.GetEmailFromJwt(dto.Jwt!);
         var collection = await collectionsService.UpdateCollection(dto.UpdateCollectionDto, email);
-        socket.SendDto(new ServerSavesCollection
+        var allCollections = await collectionsService.GetCollectionsForUser(email);
+        socket.SendDto(new ServerSendsAllCollections()
         {
-            Collection = collection
+            Collections = allCollections.ToList()
         });
     }
 }
