@@ -6,12 +6,10 @@ using api.Events.Auth.Client;
 using api.Extensions;
 using Fleck;
 using Infrastructure;
-using Infrastructure.Repositories;
 using lib;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Shared.Dtos;
-using Shared.Dtos.FromClient.Identity;
 using Shared.Exceptions;
 using Shared.Models;
 using Testcontainers.PostgreSql;
@@ -123,11 +121,7 @@ public static class Startup
         {
             socket.OnOpen = () =>
             {
-                var jwtService = app.Services.GetRequiredService<JwtService>();
-                var jwt = socket.ConnectionInfo.Path.TrimStart('/');
-                if (!jwtService.IsJwtTokenValid(jwt)) return;
-                var email = jwtService.GetEmailFromJwt(jwt);
-                app.Services.GetRequiredService<WebSocketConnectionService>().AddConnection(socket, email);
+                app.Services.GetRequiredService<WebSocketConnectionService>().AddConnection(socket);
             };
             socket.OnClose = () => app.Services.GetRequiredService<WebSocketConnectionService>().RemoveConnection(socket);
             socket.OnMessage = async message =>

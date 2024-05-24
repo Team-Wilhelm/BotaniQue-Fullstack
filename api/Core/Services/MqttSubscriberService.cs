@@ -48,8 +48,8 @@ public class MqttSubscriberService
 
         await mqttClient.ConnectAsync(mqttClientOptions, CancellationToken.None);
 
-        var mqttSubscribeOptions = mqttFactory.CreateSubscribeOptionsBuilder()
-            .Build();
+        var mqttSubscribeOptions = mqttFactory.CreateSubscribeOptionsBuilder().WithTopicFilter(
+                f => { f.WithTopic(_options.Value.SubscribeTopic); }).Build();
 
         await mqttClient.SubscribeAsync(mqttSubscribeOptions, CancellationToken.None);
         

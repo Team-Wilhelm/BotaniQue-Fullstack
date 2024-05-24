@@ -8,10 +8,16 @@ public class WebSocketConnectionService
 {
     private readonly Dictionary<Guid, ClientConnection> _connectedClients = new();
 
-    public void AddConnection(IWebSocketConnection connection, string email)
+    public void AddConnection(IWebSocketConnection connection)
     {
         var clientId = connection.ConnectionInfo.Id;
-        _connectedClients.TryAdd(clientId, new ClientConnection(connection, email));
+        _connectedClients.TryAdd(clientId, new ClientConnection { Connection = connection, Email = null});
+    }
+    
+    public void UpdateConnectionEmail(IWebSocketConnection connection, string email)
+    {
+        var clientId = connection.ConnectionInfo.Id;
+        _connectedClients[clientId].Email = email;
     }
 
     public void RemoveConnection(IWebSocketConnection connection)

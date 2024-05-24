@@ -26,7 +26,7 @@ public class ClientWantsToLogIn(WebSocketConnectionService webSocketConnectionSe
 
         var user = await userService.GetUserByEmail(dto.LoginDto.Email);
         
-        webSocketConnectionService.AddConnection(socket, dto.LoginDto.Email);
+        webSocketConnectionService.UpdateConnectionEmail(socket, dto.LoginDto.Email);
         
         var getUserDto = new GetUserDto
         {

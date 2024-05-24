@@ -20,7 +20,7 @@ public class ConditionsLogsService (WebSocketConnectionService webSocketConnecti
             throw new RegisterDeviceException();
         }
 
-        var recentMood = conditionsLogsRepository.GetRecentMoodAsync(plantId).Result;
+        var recentMood = await conditionsLogsRepository.GetRecentMoodAsync(plantId);
 
         var conditionsLog = new ConditionsLog
         {

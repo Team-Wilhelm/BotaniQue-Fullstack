@@ -1,3 +1,4 @@
+using api.Core.Services;
 using api.Events.Auth.Server;
 using api.Extensions;
 using Fleck;
@@ -13,10 +14,12 @@ public class ClientWantsToCheckJwtValidityDto : BaseDtoWithJwt;
 /// If the token is not valid, an exception will be thrown, and the GlobalExceptionHandler will catch it, and send a
 /// corresponding message to the client.
 /// </summary>
-public class ClientWantsToCheckJwtValidity : BaseEventHandler<ClientWantsToCheckJwtValidityDto>
+public class ClientWantsToCheckJwtValidity(WebSocketConnectionService webSocketConnectionService, JwtService jwtService) : BaseEventHandler<ClientWantsToCheckJwtValidityDto>
 {
     public override Task Handle(ClientWantsToCheckJwtValidityDto dto, IWebSocketConnection socket)
     {
+        var email = jwtService.GetEmailFromJwt(dto.Jwt);
+        webSocketConnectionService.UpdateConnectionEmail(socket, email);
         socket.SendDto(new ServerAuthenticatesUser
         {
             Jwt = dto.Jwt,

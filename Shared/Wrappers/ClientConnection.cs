@@ -2,8 +2,8 @@
 
 namespace Shared.Wrappers;
 
-public class ClientConnection(IWebSocketConnection connection, string email)
+public class ClientConnection
 {
-    public IWebSocketConnection Connection { get; } = connection;
-    public string Email { get; } = email;
+    public IWebSocketConnection Connection { get; set; }
+    public string? Email { get; set; }
 }
