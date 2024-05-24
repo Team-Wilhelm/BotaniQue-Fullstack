@@ -39,15 +39,15 @@ public class ConditionsLogsService (WebSocketConnectionService webSocketConnecti
 
         var addedLog = await conditionsLogsRepository.CreateConditionsLogAsync(conditionsLog);
 
+        var email = await userService.GetEmailFromDeviceId(createConditionsLogDto.DeviceId.ToString());
+        var connection = webSocketConnectionService.GetConnectionByEmail(email);
+        connection?.SendDto(new ServerSendsLatestConditionsForPlant
+        {
+            ConditionsLog = addedLog
+        });
+        
         if (newMood != recentMood)
         {
-            var email = await userService.GetEmailFromDeviceId(createConditionsLogDto.DeviceId.ToString());
-            var connection = webSocketConnectionService.GetConnectionByEmail(email);
-            connection?.SendDto(new ServerSendsLatestConditionsForPlant
-            {
-                ConditionsLog = addedLog
-            });
-
             var moodDto = new MoodDto
             {
                 Mood = newMood

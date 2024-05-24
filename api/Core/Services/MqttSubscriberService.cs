@@ -39,17 +39,16 @@ public class MqttSubscriberService
             var payload = Encoding.UTF8.GetString((ReadOnlySpan<byte>)e.ApplicationMessage.PayloadSegment);
             var conditions = JsonSerializer.Deserialize<CreateConditionsLogDto>(payload, options:
                 _jsonSerializerOptions);
-            
-            if (conditions is null) return;
-            
-            await _conditionsLogService.CreateConditionsLogAsync(conditions);
+
+            if (conditions is not null)
+            {
+                await _conditionsLogService.CreateConditionsLogAsync(conditions);
+            }
         };
 
         await mqttClient.ConnectAsync(mqttClientOptions, CancellationToken.None);
 
         var mqttSubscribeOptions = mqttFactory.CreateSubscribeOptionsBuilder()
-            .WithTopicFilter(
-                f => { f.WithTopic(_options.Value.SubscribeTopic); })
             .Build();
 
         await mqttClient.SubscribeAsync(mqttSubscribeOptions, CancellationToken.None);

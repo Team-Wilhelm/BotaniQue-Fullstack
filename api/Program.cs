@@ -10,6 +10,7 @@ using Infrastructure.Repositories;
 using lib;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using Shared.Dtos;
 using Shared.Dtos.FromClient.Identity;
 using Shared.Exceptions;
 using Shared.Models;
@@ -117,6 +118,7 @@ public static class Startup
         var wsServer = new WebSocketServer($"ws://0.0.0.0:{port}");
         // builder.WebHost.UseUrls("http://*:9999");
 
+        app.Services.GetRequiredService<MqttPublisherService>().PublishAsync(new MoodDto { Mood = 1 }, 264625477326660);
         wsServer.Start(socket =>
         {
             socket.OnOpen = () =>

@@ -9,7 +9,7 @@ public class RequirementService(RequirementsRepository requirementsRepository)
 {
     public async Task<Requirements> GetRequirements(Guid plantId)
     {
-        var requirements = await requirementsRepository.GetRequirements(plantId); 
+        var requirements = await requirementsRepository.GetRequirementsForPlant(plantId); 
         if (requirements is null) throw new NotFoundException("Requirements not found");
         return requirements;
     }
@@ -22,7 +22,7 @@ public class RequirementService(RequirementsRepository requirementsRepository)
     
     public async Task<Requirements?> UpdateRequirements(UpdateRequirementDto updateRequirementDto, Guid plantId)
     {
-        var requirements = await requirementsRepository.GetRequirements(updateRequirementDto.RequirementsId);
+        var requirements = await requirementsRepository.GetRequirementsForPlant(updateRequirementDto.RequirementsId);
         if (requirements is null) throw new NotFoundException("Requirements not found");
         if (requirements.PlantId != plantId) throw new NoAccessException("You don't have access to this plant");
         
@@ -32,7 +32,7 @@ public class RequirementService(RequirementsRepository requirementsRepository)
     
     public async Task DeleteRequirements(Guid plantId)
     {
-        var requirements = await requirementsRepository.GetRequirements(plantId);
+        var requirements = await requirementsRepository.GetRequirementsForPlant(plantId);
         if (requirements is null) throw new NotFoundException("Requirements not found");
         
         await requirementsRepository.DeleteRequirements(requirements);
