@@ -75,4 +75,9 @@ public class CollectionsService(CollectionsRepository collectionsRepository, Pla
         if (collection.UserEmail != loggedInUser) throw new NoAccessException("You don't have access to this collection");
         return collection;
     }
+
+    public async Task<int> GetTotalCollectionsCount(string email)
+    {
+        return await collectionsRepository.GetTotalCollectionsCount(email);
+    }
 }
