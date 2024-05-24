@@ -6,11 +6,9 @@ using Core.Options;
 using Core.Services;
 using Fleck;
 using Infrastructure;
-using Infrastructure.Repositories;
 using lib;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
-using Shared.Dtos.FromClient.Identity;
 using Shared.Exceptions;
 using Shared.Models;
 using Testcontainers.PostgreSql;
@@ -115,7 +113,7 @@ public static class Startup
 
         var port = Environment.GetEnvironmentVariable("PORT") ?? "8181";
         var wsServer = new WebSocketServer($"ws://0.0.0.0:{port}");
-        // builder.WebHost.UseUrls("http://*:9999");
+        builder.WebHost.UseUrls("http://*:9999");
 
         wsServer.Start(socket =>
         {
