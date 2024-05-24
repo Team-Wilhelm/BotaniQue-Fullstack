@@ -1,4 +1,5 @@
 using api.Events.Auth.Server;
+using api.Events.Global;
 using api.Extensions;
 using Core.Services;
 using Core.Services.External.BlobStorage;
@@ -48,7 +49,3 @@ public class ClientWantsToLogIn(UserService userService, IBlobStorageService blo
     }
 }
 
-public class ServerSendsUserInfo : BaseDto
-{
-    public GetUserDto GetUserDto { get; set; } = null!;
-}

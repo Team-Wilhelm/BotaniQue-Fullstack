@@ -67,4 +67,11 @@ public class CollectionsRepository(IDbContextFactory<ApplicationDbContext> dbCon
         collection.Plants.Remove(plant);
         await applicationDbContext.SaveChangesAsync();
     }
+
+    public async Task<int> GetTotalCollectionsCount(string email)
+    {
+        await using var applicationDbContext = await dbContextFactory.CreateDbContextAsync();
+        return await applicationDbContext.Collections
+            .CountAsync(collection => collection.UserEmail == email);
+    }
 }
