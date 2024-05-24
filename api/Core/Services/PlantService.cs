@@ -134,6 +134,16 @@ public class PlantService(
 
         return criticalPlants;
     }
+    
+    public async Task<int> GetHappyPlantsCount(string userEmail)
+    {
+        return await plantRepository.GetHappyPlantsCount(userEmail);
+    }
+    
+    public async Task<int> GetTotalPlantsCount(string userEmail)
+    {
+        return await plantRepository.GetTotalPlantsCount(userEmail);
+    }
 
     private string GenerateRandomNickname()
     {

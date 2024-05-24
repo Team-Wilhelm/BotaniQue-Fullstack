@@ -1,6 +1,7 @@
 using api.Core.Services;
 using api.Core.Services.External.BlobStorage;
 using api.Events.Auth.Server;
+using api.Events.Global;
 using api.Extensions;
 using Fleck;
 using lib;
@@ -50,7 +51,3 @@ public class ClientWantsToLogIn(WebSocketConnectionService webSocketConnectionSe
     }
 }
 
-public class ServerSendsUserInfo : BaseDto
-{
-    public GetUserDto GetUserDto { get; set; } = null!;
-}
