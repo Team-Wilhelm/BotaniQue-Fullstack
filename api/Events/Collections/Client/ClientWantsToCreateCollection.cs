@@ -18,10 +18,11 @@ public class ClientWantsToCreateCollection(CollectionsService collectionsService
     public override async Task Handle(ClientWantsToCreateCollectionDto dto, IWebSocketConnection socket)
     {
         var email = jwtService.GetEmailFromJwt(dto.Jwt!);
-        var collection = await collectionsService.CreateCollection(dto.CreateCollectionDto, email);
-        socket.SendDto(new ServerSavesCollection
+        await collectionsService.CreateCollection(dto.CreateCollectionDto, email);
+        var allCollections = await collectionsService.GetCollectionsForUser(email);
+        socket.SendDto(new ServerSendsAllCollections()
         {
-            Collection = collection
+            Collections = allCollections.ToList()
         });
     }
 }

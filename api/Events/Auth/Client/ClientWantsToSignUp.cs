@@ -11,7 +11,7 @@ namespace api.Events.Auth.Client;
 
 public class ClientWantsToSignUpDto : BaseDto
 {
-    public RegisterUserDto RegisterUserDto { get; set; }
+    public required RegisterUserDto RegisterUserDto { get; set; }
 }
 
 [ValidateDataAnnotations]

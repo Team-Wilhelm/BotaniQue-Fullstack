@@ -2,7 +2,4 @@
 
 namespace api.Events.Global;
 
-public class ServerConfirmsDelete: BaseDto
-{
-    
-}
+public class ServerConfirmsDelete: BaseDto;
