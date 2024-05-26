@@ -2,9 +2,6 @@ name: Deploy BE
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - deployed
   pull_request:
     types: [ closed ]
     branches:
