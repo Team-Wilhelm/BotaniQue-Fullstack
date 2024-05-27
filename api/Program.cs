@@ -13,6 +13,7 @@ using Shared.Dtos;
 using Shared.Exceptions;
 using Shared.Models;
 using Testcontainers.PostgreSql;
+using Timer = System.Timers.Timer;
 
 namespace api;
 
@@ -133,6 +134,26 @@ public static class Startup
         
         wsServer.Start(socket =>
         {
+            var keepAliveInterval = TimeSpan.FromSeconds(30);
+            var keepAliveTimer = new Timer(keepAliveInterval.TotalMilliseconds)
+            {
+                AutoReset = true,
+                Enabled = true
+            };
+            
+            keepAliveTimer.Elapsed += (sender, args) =>
+            {
+                if (socket.IsAvailable)
+                {
+                    socket.Send("Keep alive");
+                }
+                else
+                {
+                    keepAliveTimer.Stop();
+                    keepAliveTimer.Dispose();
+                }
+            };
+            
             socket.OnOpen = () => app.Services.GetRequiredService<WebSocketConnectionService>().AddConnection(socket);
             socket.OnClose = () => app.Services.GetRequiredService<WebSocketConnectionService>().RemoveConnection(socket);
             socket.OnMessage = async message =>
