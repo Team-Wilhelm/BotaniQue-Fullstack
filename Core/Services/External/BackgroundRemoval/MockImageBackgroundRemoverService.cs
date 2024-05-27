@@ -1,3 +1,5 @@
+using Core.Services.External.BackgroundRemoval;
+
 namespace Core.Services.External;
 
 public class MockImageBackgroundRemoverService : IImageBackgroundRemoverService
