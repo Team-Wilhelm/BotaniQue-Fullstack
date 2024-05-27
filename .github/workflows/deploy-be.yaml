@@ -25,6 +25,7 @@ jobs:
           heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
           heroku_email: ${{ secrets.HEROKU_EMAIL }}
           usedocker: false
+          branch: deployed
         
         env: #only the key names below should be prefixed HD_ and the ${{secrets.NAME}} should not
           HD_DbConnection: ${{secrets.DbConnection}}
