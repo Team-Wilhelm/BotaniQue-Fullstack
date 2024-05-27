@@ -1,8 +1,8 @@
+using api.Core.Services;
+using api.Core.Services.External.BlobStorage;
 using api.Events.Auth.Server;
 using api.Events.Global;
 using api.Extensions;
-using Core.Services;
-using Core.Services.External.BlobStorage;
 using Fleck;
 using lib;
 using Shared.Dtos;
@@ -16,7 +16,7 @@ public class ClientWantsToLogInDto : BaseDto
     public LoginDto LoginDto { get; set; } = null!;
 }
 
-public class ClientWantsToLogIn(UserService userService, IBlobStorageService blobStorageService)
+public class ClientWantsToLogIn(WebSocketConnectionService webSocketConnectionService, UserService userService, IBlobStorageService blobStorageService)
     : BaseEventHandler<ClientWantsToLogInDto>
 {
     public override async Task Handle(ClientWantsToLogInDto dto, IWebSocketConnection socket)
@@ -25,6 +25,8 @@ public class ClientWantsToLogIn(UserService userService, IBlobStorageService blo
         if (jwt == null) throw new InvalidCredentialsException();
 
         var user = await userService.GetUserByEmail(dto.LoginDto.Email);
+        
+        webSocketConnectionService.UpdateConnectionEmail(socket, dto.LoginDto.Email);
         
         var getUserDto = new GetUserDto
         {

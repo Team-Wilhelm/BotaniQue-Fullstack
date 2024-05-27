@@ -1,14 +1,15 @@
 using System.Reflection;
 using System.Text.Json;
+using api.Core.Options;
+using api.Core.Services;
 using api.Events.Auth.Client;
 using api.Extensions;
-using Core.Options;
-using Core.Services;
 using Fleck;
 using Infrastructure;
 using lib;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using Shared.Dtos;
 using Shared.Exceptions;
 using Shared.Models;
 using Testcontainers.PostgreSql;
@@ -116,6 +117,7 @@ public static class Startup
         var port = Environment.GetEnvironmentVariable("PORT") ?? "8181";
         var wsServer = new WebSocketServer($"ws://0.0.0.0:{port}");
 
+        app.Services.GetRequiredService<MqttPublisherService>().PublishAsync(new MoodDto { Mood = 1 }, 264625477326660);
         wsServer.Start(socket =>
         {
             socket.OnOpen = () => app.Services.GetRequiredService<WebSocketConnectionService>().AddConnection(socket);

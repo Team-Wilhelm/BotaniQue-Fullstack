@@ -1,6 +1,4 @@
-using Core.Services.External.BackgroundRemoval;
-
-namespace Core.Services.External;
+namespace api.Core.Services.External.BackgroundRemoval;
 
 public class MockImageBackgroundRemoverService : IImageBackgroundRemoverService
 { 
