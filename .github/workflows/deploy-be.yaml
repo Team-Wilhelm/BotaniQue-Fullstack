@@ -19,7 +19,7 @@ jobs:
           dotnet-version: '8.0.x'
 
       - run: cd api && dotnet publish -c Release -o publish
-      - uses: AkhileshNS/heroku-deploy@v3.13.15
+      - uses: AkhileshNS/heroku-deploy@v3.13.15&
         with:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
@@ -28,6 +28,7 @@ jobs:
           branch: deployed
         
         env: #only the key names below should be prefixed HD_ and the ${{secrets.NAME}} should not
+          HD_CI: true
           HD_DbConnection: ${{secrets.DbConnection}}
           HD_AZURE_BLOB_CONNECTION_STRING: ${{secrets.AZURE_BLOB_CONNECTION_STRING}}
           HD_AZURE_BLOB_PLANT_IMAGES_CONTAINER: ${{secrets.AZURE_BLOB_PLANT_IMAGES_CONTAINER}}
