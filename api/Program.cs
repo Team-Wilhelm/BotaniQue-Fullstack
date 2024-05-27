@@ -100,11 +100,8 @@ public static class Startup
             }
         }
 
-        builder.WebHost.UseUrls(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development"
-            ? "http://*:9999"
-            : "https://*:9999");
-
-
+        builder.WebHost.UseUrls("http://*:9999");
+        
         var port = Environment.GetEnvironmentVariable("PORT") ?? "8181";
         var wsServer = new WebSocketServer($"ws://0.0.0.0:{port}");
         
