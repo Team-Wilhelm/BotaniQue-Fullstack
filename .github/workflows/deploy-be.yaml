@@ -1,0 +1,46 @@
+name: Deploy BE
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [ closed ]
+    branches:
+      - deployed
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with: 
+          ref: 'deployed'
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - run: cd api && dotnet publish -c Release -o publish
+      - uses: AkhileshNS/heroku-deploy@v3.13.15
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+          usedocker: false
+        
+        env: #only the key names below should be prefixed HD_ and the ${{secrets.NAME}} should not
+          HD_DbConnection: ${{secrets.DbConnection}}
+          HD_AZURE_BLOB_CONNECTION_STRING: ${{secrets.AZURE_BLOB_CONNECTION_STRING}}
+          HD_AZURE_BLOB_PLANT_IMAGES_CONTAINER: ${{secrets.AZURE_BLOB_PLANT_IMAGES_CONTAINER}}
+          HD_AZURE_BLOB_USER_PROFILE_IMAGES_CONTAINER: ${{secrets.AZURE_BLOB_USER_PROFILE_IMAGES_CONTAINER}}
+          HD_AZURE_VISION_BASE_URL: ${{secrets.AZURE_VISION_BASE_URL}}
+          HD_AZURE_VISION_KEY: ${{secrets.AZURE_VISION_KEY}}
+          HD_AZURE_VISION_REMOVE_BACKGROUND_ENDPOINT: ${{secrets.AZURE_VISION_REMOVE_BACKGROUND_ENDPOINT}}
+          HD_JWT_AUDIENCE: ${{secrets.JWT_AUDIENCE}}
+          HD_JWT_EXPIRY: ${{secrets.JWT_EXPIRY}}
+          HD_JWT_ISSUER: ${{secrets.JWT_ISSUER}}
+          HD_JWT_KEY: ${{secrets.JWT_KEY}}
+          HD_MQTT_BROKER: ${{secrets.MQTT_BROKER}}
+          HD_MQTT_CLIENT_ID: ${{secrets.MQTT_CLIENT_ID}}
+          HD_MQTT_PORT: ${{secrets.MQTT_PORT}}
+          HD_MQTT_PUBLISH_TOPIC: ${{secrets.MQTT_PUBLISH_TOPIC}}
+          HD_MQTT_SUBSCRIBE_TOPIC: ${{secrets.MQTT_SUBSCRIBE_TOPIC}}
+          HD_MQTT_USERNAME: ${{secrets.MQTT_USERNAME}}

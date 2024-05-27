@@ -114,21 +114,19 @@ public static class Startup
 
         var port = Environment.GetEnvironmentVariable("PORT") ?? "8181";
         var wsServer = new WebSocketServer($"ws://0.0.0.0:{port}");
-        // builder.WebHost.UseUrls("http://*:9999");
+        builder.WebHost.UseUrls("http://*:9999");
 
         app.Services.GetRequiredService<MqttPublisherService>().PublishAsync(new MoodDto { Mood = 1 }, 264625477326660);
         wsServer.Start(socket =>
         {
-            socket.OnOpen = () =>
-            {
-                app.Services.GetRequiredService<WebSocketConnectionService>().AddConnection(socket);
-            };
+            socket.OnOpen = () => app.Services.GetRequiredService<WebSocketConnectionService>().AddConnection(socket);
             socket.OnClose = () => app.Services.GetRequiredService<WebSocketConnectionService>().RemoveConnection(socket);
             socket.OnMessage = async message =>
             {
                 Log.Information("Received message: {message}", message);
                 try
                 {
+                    // Check if the message contains a JWT token and if it is valid
                     var dto = JsonSerializer.Deserialize<BaseDtoWithJwt>(message, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     if (dto is not null && PublicEvents.Contains(dto.eventType) == false)
                     {
@@ -136,7 +134,7 @@ public static class Startup
                         {
                             throw new NotAuthenticatedException("JWT token is missing. Please log in.");
                         }
-
+                        
                         var jwtService = app.Services.GetRequiredService<JwtService>();
                         var jwtValid = jwtService.IsJwtTokenValid(dto.Jwt);
                         if (!jwtValid)
@@ -144,7 +142,7 @@ public static class Startup
                             throw new NotAuthenticatedException("JWT token is not valid. Please log in.");
                         }
                     }
-
+                    
                     await app.InvokeClientEventHandler(services, socket, message);
                 }
                 catch (Exception e)
