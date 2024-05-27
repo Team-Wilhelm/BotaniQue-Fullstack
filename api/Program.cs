@@ -49,8 +49,8 @@ public static class Startup
                 .Build();
 
             await dbContainer.StartAsync();
-            
-            var connectionString = dbContainer.GetConnectionString() + ";Include Error Detail=true;";
+
+            var connectionString = dbContainer.GetConnectionString();
             builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
             {
                 options.UseNpgsql(connectionString ?? throw new Exception("Connection string cannot be null"));

@@ -25,7 +25,7 @@ public static class AddServicesAndRepositoriesExtension
         services.AddSingleton<CollectionsService>();
         services.AddSingleton<ConditionsLogsService>();
         services.AddSingleton<RequirementService>();
-        services.AddHostedService<MqttSubscriberService>();
+        services.AddSingleton<MqttSubscriberService>();
         services.AddSingleton<MqttPublisherService>();
         
         // External services
