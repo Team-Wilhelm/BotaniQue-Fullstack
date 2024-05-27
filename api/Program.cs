@@ -111,9 +111,10 @@ public static class Startup
             await db.SeedDevelopmentDataAsync(scope, app.Configuration["AzureBlob:DefaultPlantImageUrl"] ?? "https://example.com");
         }
 
+        builder.WebHost.UseUrls("http://*:9999");
+        
         var port = Environment.GetEnvironmentVariable("PORT") ?? "8181";
         var wsServer = new WebSocketServer($"ws://0.0.0.0:{port}");
-        builder.WebHost.UseUrls("http://*:9999");
 
         wsServer.Start(socket =>
         {
