@@ -1,4 +1,4 @@
-namespace Core.Services.External;
+namespace Core.Services.External.BackgroundRemoval;
 
 public interface IImageBackgroundRemoverService
 {

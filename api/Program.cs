@@ -49,8 +49,8 @@ public static class Startup
                 .Build();
 
             await dbContainer.StartAsync();
-            
-            var connectionString = dbContainer.GetConnectionString() + ";Include Error Detail=true;";
+
+            var connectionString = dbContainer.GetConnectionString();
             builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
             {
                 options.UseNpgsql(connectionString ?? throw new Exception("Connection string cannot be null"));
@@ -62,7 +62,7 @@ public static class Startup
             var connectionString = builder.Configuration.GetConnectionString("BotaniqueDb");
             builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
             {
-                connectionString ??= Environment.GetEnvironmentVariable("BotaniqueDb");
+                connectionString ??= Environment.GetEnvironmentVariable("DbConnection");
                 options.UseNpgsql(connectionString ?? throw new Exception("Connection string cannot be null"));
             });
         }
@@ -111,9 +111,10 @@ public static class Startup
             await db.SeedDevelopmentDataAsync(scope, app.Configuration["AzureBlob:DefaultPlantImageUrl"] ?? "https://example.com");
         }
 
+        builder.WebHost.UseUrls("http://*:9999");
+        
         var port = Environment.GetEnvironmentVariable("PORT") ?? "8181";
         var wsServer = new WebSocketServer($"ws://0.0.0.0:{port}");
-        builder.WebHost.UseUrls("http://*:9999");
 
         wsServer.Start(socket =>
         {
@@ -150,10 +151,6 @@ public static class Startup
             };
         });
         
-        // Connect and subscribe to MQTT
-        var mqttSubscriberService = app.Services.GetRequiredService<MqttSubscriberService>();
-        _ = mqttSubscriberService.SubscribeAsync();
-
         return app;
     }
 }
