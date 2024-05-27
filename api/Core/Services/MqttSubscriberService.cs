@@ -1,22 +1,24 @@
 using System.Text;
 using System.Text.Json;
-using Core.Options;
+using api.Core.Options;
 using Microsoft.Extensions.Options;
 using MQTTnet;
 using MQTTnet.Client;
 using Shared.Dtos;
 
-namespace Core.Services;
+namespace api.Core.Services;
 
 public class MqttSubscriberService
 {
     private readonly IOptions<MqttOptions> _options;
     private readonly ConditionsLogsService _conditionsLogService;
+    private readonly JsonSerializerOptions _jsonSerializerOptions;
 
     public MqttSubscriberService(IOptions<MqttOptions> options, ConditionsLogsService conditionsLogService)
     {
         _options = options;
         _conditionsLogService = conditionsLogService;
+        _jsonSerializerOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
         if (string.IsNullOrEmpty(_options.Value.Username) || _options.Value.Username == "FILL_ME_IN")
             throw new Exception("MQTT username not set in appsettings.json");
@@ -34,21 +36,20 @@ public class MqttSubscriberService
         
         mqttClient.ApplicationMessageReceivedAsync += async e =>
         {
-            var payload = Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment);
+            var payload = Encoding.UTF8.GetString((ReadOnlySpan<byte>)e.ApplicationMessage.PayloadSegment);
             var conditions = JsonSerializer.Deserialize<CreateConditionsLogDto>(payload, options:
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            
-            if (conditions is null) return;
-            
-            await _conditionsLogService.CreateConditionsLogAsync(conditions);
+                _jsonSerializerOptions);
+
+            if (conditions is not null)
+            {
+                await _conditionsLogService.CreateConditionsLogAsync(conditions);
+            }
         };
 
         await mqttClient.ConnectAsync(mqttClientOptions, CancellationToken.None);
 
-        var mqttSubscribeOptions = mqttFactory.CreateSubscribeOptionsBuilder()
-            .WithTopicFilter(
-                f => { f.WithTopic(_options.Value.SubscribeTopic); })
-            .Build();
+        var mqttSubscribeOptions = mqttFactory.CreateSubscribeOptionsBuilder().WithTopicFilter(
+                f => { f.WithTopic(_options.Value.SubscribeTopic); }).Build();
 
         await mqttClient.SubscribeAsync(mqttSubscribeOptions, CancellationToken.None);
     }

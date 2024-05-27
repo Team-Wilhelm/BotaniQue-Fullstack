@@ -1,10 +1,10 @@
 using System.Net;
 using System.Net.Http.Headers;
-using Core.Options;
+using api.Core.Options;
 using Microsoft.Extensions.Options;
 using Shared.Exceptions;
 
-namespace Core.Services.External.BackgroundRemoval;
+namespace api.Core.Services.External.BackgroundRemoval;
 
 public class ImageBackgroundRemoverService(IOptions<AzureVisionOptions> options) : IImageBackgroundRemoverService
 {

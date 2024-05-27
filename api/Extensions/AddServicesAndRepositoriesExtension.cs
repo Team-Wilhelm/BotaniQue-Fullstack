@@ -1,7 +1,6 @@
-using Core.Services;
-using Core.Services.External;
-using Core.Services.External.BackgroundRemoval;
-using Core.Services.External.BlobStorage;
+using api.Core.Services;
+using api.Core.Services.External.BackgroundRemoval;
+using api.Core.Services.External.BlobStorage;
 using Infrastructure.Repositories;
 
 namespace api.Extensions;

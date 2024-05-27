@@ -1,11 +1,13 @@
-﻿using Infrastructure.Repositories;
+﻿using api.Events.Conditions.Server;
+using api.Extensions;
+using Infrastructure.Repositories;
 using Shared.Dtos;
 using Shared.Exceptions;
 using Shared.Models.Information;
 
-namespace Core.Services;
+namespace api.Core.Services;
 
-public class ConditionsLogsService (ConditionsLogsRepository conditionsLogsRepository, PlantService plantService, RequirementService requirementService ,MqttPublisherService mqttPublisherService)
+public class ConditionsLogsService (WebSocketConnectionService webSocketConnectionService, UserService userService, ConditionsLogsRepository conditionsLogsRepository, PlantService plantService, RequirementService requirementService ,MqttPublisherService mqttPublisherService)
 {
     private const int TemperatureTolerance = 1;
     
@@ -18,7 +20,7 @@ public class ConditionsLogsService (ConditionsLogsRepository conditionsLogsRepos
             throw new RegisterDeviceException();
         }
 
-        var recentMood = conditionsLogsRepository.GetRecentMoodAsync(plantId).Result;
+        var recentMood = await conditionsLogsRepository.GetRecentMoodAsync(plantId);
 
         var conditionsLog = new ConditionsLog
         {
@@ -35,17 +37,22 @@ public class ConditionsLogsService (ConditionsLogsRepository conditionsLogsRepos
         var newMood = await CalculateMood(conditionsLog);
         conditionsLog.Mood = newMood;
 
-        await conditionsLogsRepository.CreateConditionsLogAsync(conditionsLog);
+        var addedLog = await conditionsLogsRepository.CreateConditionsLogAsync(conditionsLog);
 
+        var email = await userService.GetEmailFromDeviceId(createConditionsLogDto.DeviceId.ToString());
+        var connection = webSocketConnectionService.GetConnectionByEmail(email);
+        connection?.SendDto(new ServerSendsLatestConditionsForPlant
+        {
+            ConditionsLog = addedLog
+        });
+        
         if (newMood != recentMood)
         {
-            //TODO send Event to mobile app
             var moodDto = new MoodDto
             {
-                Mood = newMood,
+                Mood = newMood
             };
-            var deviceId = createConditionsLogDto.DeviceId;
-            await mqttPublisherService.PublishAsync(moodDto, deviceId);
+            await mqttPublisherService.PublishAsync(moodDto, createConditionsLogDto.DeviceId);
         }
     }
     

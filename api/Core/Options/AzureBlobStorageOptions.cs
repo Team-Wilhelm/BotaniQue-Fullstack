@@ -1,4 +1,4 @@
-namespace Core.Options;
+namespace api.Core.Options;
 
 public class AzureBlobStorageOptions
 {

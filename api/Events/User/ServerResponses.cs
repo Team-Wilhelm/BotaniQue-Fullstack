@@ -1,7 +1,7 @@
 ﻿using api.Events.Global;
 using lib;
 
-namespace api.Events.User.ServerResponses;
+namespace api.Events.User;
 
 public class ServerConfirmsUpdateUsername : BaseDto
 {
