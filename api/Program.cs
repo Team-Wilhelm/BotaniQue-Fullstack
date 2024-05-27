@@ -151,9 +151,11 @@ public static class Startup
             };
         });
         
+        /*
         // Connect and subscribe to MQTT
         var mqttSubscriberService = app.Services.GetRequiredService<MqttSubscriberService>();
         _ = mqttSubscriberService.SubscribeAsync();
+        */
 
         return app;
     }
