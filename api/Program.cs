@@ -62,7 +62,7 @@ public static class Startup
             var connectionString = builder.Configuration.GetConnectionString("BotaniqueDb");
             builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
             {
-                connectionString ??= Environment.GetEnvironmentVariable("BotaniqueDb");
+                connectionString ??= Environment.GetEnvironmentVariable("DbConnection");
                 options.UseNpgsql(connectionString ?? throw new Exception("Connection string cannot be null"));
             });
         }
