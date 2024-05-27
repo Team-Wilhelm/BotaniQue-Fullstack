@@ -74,34 +74,7 @@ public static class Startup
             });
         }
 
-        builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JWT"));
-        builder.Services.Configure<MqttOptions>(builder.Configuration.GetSection("MQTT"));
-        builder.Services.Configure<AzureVisionOptions>(builder.Configuration.GetSection("AzureVision"));
-        builder.Services.Configure<AzureBlobStorageOptions>(builder.Configuration.GetSection("AzureBlob"));
-        
-        
-        // On ci options are stored as repository secrets
-        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Testing" && Environment.GetEnvironmentVariable("CI") is not null)
-        {
-            builder.Services.Configure<JwtOptions>(options =>
-            {
-                options.Key = Environment.GetEnvironmentVariable("JWT_KEY") ?? throw new Exception("JWT key is missing");
-                options.Issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? throw new Exception("JWT issuer is missing");
-                options.Audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? throw new Exception("JWT audience is missing");
-                options.ExpirationMinutes = int.Parse(Environment.GetEnvironmentVariable("JWT_EXPIRY") ?? throw new Exception("JWT expiration minutes is missing"));
-            });
-            
-            builder.Services.Configure<MqttOptions>(options =>
-            {
-                options.Server = Environment.GetEnvironmentVariable("MQTT_BROKER") ?? throw new Exception("MQTT broker is missing");
-                options.Port = int.Parse(Environment.GetEnvironmentVariable("MQTT_PORT") ?? throw new Exception("MQTT port is missing"));
-                options.ClientId = Environment.GetEnvironmentVariable("MQTT_CLIENT_ID") ?? throw new Exception("MQTT client id is missing");
-                options.Username = Environment.GetEnvironmentVariable("MQTT_USERNAME") ?? throw new Exception("MQTT username is missing");
-                options.SubscribeTopic = Environment.GetEnvironmentVariable("MQTT_SUBSCRIBE_TOPIC") ?? throw new Exception("MQTT subscribe topic is missing");
-                options.PublishTopic = Environment.GetEnvironmentVariable("MQTT_PUBLISH_TOPIC") ?? throw new Exception("MQTT publish topic is missing");
-            });
-        }
-        
+        builder.ConfigureOptions();
         builder.Services.AddServicesAndRepositories();
         
         var services = builder.FindAndInjectClientEventHandlers(Assembly.GetExecutingAssembly());
@@ -127,8 +100,11 @@ public static class Startup
             }
         }
 
-        builder.WebHost.UseUrls("http://*:9999");
-        
+        builder.WebHost.UseUrls(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development"
+            ? "http://*:9999"
+            : "https://*:9999");
+
+
         var port = Environment.GetEnvironmentVariable("PORT") ?? "8181";
         var wsServer = new WebSocketServer($"ws://0.0.0.0:{port}");
         
