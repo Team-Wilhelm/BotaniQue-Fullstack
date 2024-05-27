@@ -33,6 +33,11 @@ public static class Startup
 
     public static async Task<WebApplication> StartApi(string[] args)
     {
+        if (args.Contains("--prod"))
+        {
+            Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
+        }
+        
         Log.Logger = new LoggerConfiguration()
             .WriteTo
             .Console(outputTemplate: "\n{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level}] {Message}{NewLine}{Exception}\n")
@@ -106,10 +111,19 @@ public static class Startup
         {
             var scope = app.Services.CreateScope();
             var db = await app.Services.GetRequiredService<IDbContextFactory<ApplicationDbContext>>().CreateDbContextAsync();
-            await db.Database.EnsureDeletedAsync();
+             
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            {
+                await db.Database.EnsureDeletedAsync();
+            }
+            
             await db.Database.EnsureCreatedAsync();
             await db.Database.MigrateAsync();
-            await db.SeedDevelopmentDataAsync(scope, app.Configuration["AzureBlob:DefaultPlantImageUrl"] ?? "https://example.com");
+            
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            {
+                await db.SeedDevelopmentDataAsync(scope, app.Configuration["AzureBlob:DefaultPlantImageUrl"] ?? "https://example.com");
+            }
         }
 
         builder.WebHost.UseUrls("http://*:9999");
