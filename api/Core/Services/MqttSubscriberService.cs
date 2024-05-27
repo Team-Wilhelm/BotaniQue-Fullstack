@@ -22,6 +22,8 @@ public class MqttSubscriberService
 
         if (string.IsNullOrEmpty(_options.Value.Username) || _options.Value.Username == "FILL_ME_IN")
             throw new Exception("MQTT username not set in appsettings.json");
+
+        _ = SubscribeAsync();
     }
 
     public async Task SubscribeAsync()

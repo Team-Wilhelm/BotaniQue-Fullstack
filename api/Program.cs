@@ -116,8 +116,7 @@ public static class Startup
         
         var port = Environment.GetEnvironmentVariable("PORT") ?? "8181";
         var wsServer = new WebSocketServer($"ws://0.0.0.0:{port}");
-
-        app.Services.GetRequiredService<MqttPublisherService>().PublishAsync(new MoodDto { Mood = 1 }, 264625477326660);
+        
         wsServer.Start(socket =>
         {
             socket.OnOpen = () => app.Services.GetRequiredService<WebSocketConnectionService>().AddConnection(socket);
