@@ -26,6 +26,7 @@ public static class AddServicesAndRepositoriesExtension
         services.AddSingleton<RequirementService>();
         services.AddSingleton<MqttSubscriberService>();
         services.AddSingleton<MqttPublisherService>();
+        services.AddSingleton<StatsService>();
         
         // External services
         if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Testing")
