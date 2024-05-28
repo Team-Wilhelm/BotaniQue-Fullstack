@@ -17,13 +17,12 @@ namespace Tests
             {
                 BaseDto baseDto = JsonSerializer.Deserialize<BaseDto>(msg.Text);
 
-                if (baseDto.eventType == "ServerSendsError")
+                if (baseDto.eventType == "ServerSendsErrorMessage" || baseDto.eventType.Contains("ServerResponds") || baseDto.eventType.Contains("ServerRejects"))
                 {
                     var error = JsonSerializer.Deserialize<ServerSendsErrorMessage>(msg.Text);
                     throw new Exception(error!.Error);
                 }
                 
-                    
                 lock (ReceivedMessages)
                     ReceivedMessages.Add(baseDto);
             });
@@ -49,7 +48,7 @@ namespace Tests
             if (condition != null)
             {
                 DateTime startTime = DateTime.UtcNow;
-                while (DateTime.UtcNow - startTime < TimeSpan.FromSeconds(10.0))
+                while (DateTime.UtcNow - startTime < TimeSpan.FromSeconds(5.0))
                 {
                     lock (ReceivedMessages)
                     {
