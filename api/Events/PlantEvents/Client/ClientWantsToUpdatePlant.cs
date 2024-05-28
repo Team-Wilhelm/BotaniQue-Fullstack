@@ -21,10 +21,16 @@ public class ClientWantsToUpdatePlant(PlantService plantService, JwtService jwtS
         var email = jwtService.GetEmailFromJwt(dto.Jwt!);
         var plant = await plantService.UpdatePlant(dto.UpdatePlantDto, email);
         var stats = await statsService.GetStats(email);
+        var allPlants = await plantService.GetPlantsForUser(email, 1, 100);
         
         socket.SendDto(new ServerSavesPlant
         {
             Plant = plant
+        });
+        
+        socket.SendDto(new ServerSendsPlants
+        {
+            Plants = allPlants
         });
         
         socket.SendDto(new ServerSendsStats{Stats = stats});

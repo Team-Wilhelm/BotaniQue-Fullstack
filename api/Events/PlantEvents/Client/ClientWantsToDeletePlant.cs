@@ -23,9 +23,15 @@ public class ClientWantsToDeletePlant(PlantService plantService, JwtService jwtS
     {
         var email = jwtService.GetEmailFromJwt(dto.Jwt!);
         var stats = await statsService.GetStats(email);
+        var allPlants = await plantService.GetPlantsForUser(email, 1, 100);
         
         await plantService.DeletePlant(dto.PlantId, email);
         socket.SendDto( new ServerConfirmsDelete());
+        
+        socket.SendDto(new ServerSendsPlants
+        {
+            Plants = allPlants
+        });
         
         socket.SendDto(new ServerSendsStats{Stats = stats});
     }

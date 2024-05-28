@@ -23,7 +23,7 @@ public class ClientWantsToCreateCollection(CollectionsService collectionsService
         var allCollections = await collectionsService.GetCollectionsForUser(email);
         var stats = await statsService.GetStats(email);
         
-        socket.SendDto(new ServerSendsAllCollections()
+        socket.SendDto(new ServerSendsAllCollections
         {
             Collections = allCollections.ToList()
         });

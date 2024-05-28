@@ -18,7 +18,7 @@ public class ClientWantsToUpdateCollection(CollectionsService collectionsService
     public override async Task Handle(ClientWantsToUpdateCollectionDto dto, IWebSocketConnection socket)
     {
         var email = jwtService.GetEmailFromJwt(dto.Jwt!);
-        var collection = await collectionsService.UpdateCollection(dto.UpdateCollectionDto, email);
+        await collectionsService.UpdateCollection(dto.UpdateCollectionDto, email);
         var allCollections = await collectionsService.GetCollectionsForUser(email);
         socket.SendDto(new ServerSendsAllCollections()
         {

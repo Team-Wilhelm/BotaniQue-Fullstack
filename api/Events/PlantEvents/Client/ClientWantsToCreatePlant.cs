@@ -22,12 +22,18 @@ public class ClientWantsToCreatePlant(PlantService plantService, JwtService jwtS
     {
         var email = jwtService.GetEmailFromJwt(dto.Jwt!);
         var plant = await plantService.CreatePlant(dto.CreatePlantDto, email);
+        var allPlants = await plantService.GetPlantsForUser(email, 1, 100);
         
         var serverCreatesNewPlant = new ServerSavesPlant
         {
             Plant = plant
         };
         socket.SendDto(serverCreatesNewPlant);
+        
+        socket.SendDto(new ServerSendsPlants
+        {
+            Plants = allPlants
+        });
         
        var stats = await statsService.GetStats(email);
        socket.SendDto(new ServerSendsStats{Stats = stats});
