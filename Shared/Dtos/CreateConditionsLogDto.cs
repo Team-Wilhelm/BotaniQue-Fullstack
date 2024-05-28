@@ -6,5 +6,5 @@ public class CreateConditionsLogDto
     public double Light { get; set; }
     public double Temperature { get; set; }
     public double Humidity { get; set; }
-    public long DeviceId { get; set; }
+    public required string DeviceId { get; set; }
 }
