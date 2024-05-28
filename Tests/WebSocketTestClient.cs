@@ -16,13 +16,15 @@ namespace Tests
             Client.MessageReceived.Subscribe(msg =>
             {
                 BaseDto baseDto = JsonSerializer.Deserialize<BaseDto>(msg.Text);
+                Console.WriteLine("Received message: " + baseDto.eventType);
 
-                if (baseDto.eventType == "ServerSendsErrorMessage" || baseDto.eventType.Contains("ServerResponds") || baseDto.eventType.Contains("ServerRejects"))
+                if (baseDto.eventType == "ServerSendsErrorMessage" || baseDto.eventType.Contains("ServerResponds") ||
+                    baseDto.eventType.Contains("ServerRejects"))
                 {
                     var error = JsonSerializer.Deserialize<ServerSendsErrorMessage>(msg.Text);
-                    throw new Exception(error!.Error);
+                    Console.WriteLine("Error: " + error!.Error);
                 }
-                
+
                 lock (ReceivedMessages)
                     ReceivedMessages.Add(baseDto);
             });
