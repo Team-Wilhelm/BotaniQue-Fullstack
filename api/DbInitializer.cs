@@ -63,7 +63,7 @@ public class DbInitializer(IServiceProvider serviceProvider, string? defaultPlan
         var succulents = await collectionService.CreateCollection(
             new CreateCollectionDto
             {
-                Name = "Ferns",
+                Name = "Succulents",
             },
             DefaultUserEmail
         );
@@ -152,13 +152,14 @@ public class DbInitializer(IServiceProvider serviceProvider, string? defaultPlan
 
     private async Task CreateHistoricalData()
     {
+        // Create 100 logs for each plant
         var conditionsLogService = _scope.ServiceProvider.GetRequiredService<ConditionsLogsService>();
         for (var i = 0; i < 100; i++)
         {
             await conditionsLogService.CreateConditionsLogAsync(
                 new CreateConditionsLogDto
                 {
-                    DeviceId = long.Parse(_plants["Aloe Vera"].DeviceId!),
+                    DeviceId = _plants["Aloe Vera"].DeviceId!,
                     SoilMoisturePercentage = GetRandomLevelValue(),
                     Light = GetRandomLevelValue(),
                     Temperature = GetRandomTemperature(),
@@ -168,7 +169,7 @@ public class DbInitializer(IServiceProvider serviceProvider, string? defaultPlan
             await conditionsLogService.CreateConditionsLogAsync(
                 new CreateConditionsLogDto
                 {
-                    DeviceId = long.Parse(_plants["Prickly Pear"].DeviceId!),
+                    DeviceId = _plants["Prickly Pear"].DeviceId!,
                     SoilMoisturePercentage = GetRandomLevelValue(),
                     Light = GetRandomLevelValue(),
                     Temperature = GetRandomTemperature(),
@@ -177,12 +178,23 @@ public class DbInitializer(IServiceProvider serviceProvider, string? defaultPlan
             );
         }
         
+        // Adjust the timestamps to be in past
+        var db = await _scope.ServiceProvider.GetRequiredService<IDbContextFactory<ApplicationDbContext>>().CreateDbContextAsync();
+        var logs = await db.ConditionsLogs.ToListAsync();
+        for (var i = 0; i < 100; i++)
+        {
+            logs[i].TimeStamp = logs[i].TimeStamp.AddDays(-i);
+            logs[i + 100].TimeStamp = logs[i + 100].TimeStamp.AddDays(-i);
+        }
+        db.UpdateRange(logs);
+        await db.SaveChangesAsync();
+        
         var dyingPlant = _plants["Dying plant"];
         await conditionsLogService.CreateConditionsLogAsync(
     
             new CreateConditionsLogDto
             {
-                DeviceId = long.Parse(dyingPlant.DeviceId!),
+                DeviceId = dyingPlant.DeviceId!,
                 SoilMoisturePercentage = GetValueOutsideOfIdealRange(dyingPlant.Requirements!.SoilMoistureLevel),
                 Light = GetValueOutsideOfIdealRange(dyingPlant.Requirements!.LightLevel),
                 Temperature = dyingPlant.Requirements!.TemperatureLevel - 10,
