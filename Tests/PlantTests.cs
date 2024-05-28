@@ -16,13 +16,13 @@ public class PlantTests : TestBase
     {
         var jwtAndEmail = await SignUpAndLogIn();
         var jwt = jwtAndEmail[DictionaryKeys.Jwt];
-        var email = jwtAndEmail[DictionaryKeys.Email];
-        var createPlantDto = GenerateRandomCreatePlantDto(email);
+        var createPlantDto = GenerateRandomCreatePlantDto();
         
         var webSocketTestClient = await new WebSocketTestClient().ConnectAsync();
         
         await webSocketTestClient.DoAndAssert(new ClientWantsToCreatePlantDto { CreatePlantDto = createPlantDto, Jwt = jwt }, receivedMessages =>
         {
+            receivedMessages.ForEach(e => Console.WriteLine(e.eventType));
             return receivedMessages.Count(e => e.eventType == nameof(ServerSavesPlant)) == 1 &&
             receivedMessages.Count(e => e.eventType == nameof(ServerSendsStats)) == 1;
         });
@@ -47,7 +47,7 @@ public class PlantTests : TestBase
         });
     }
     
-    private CreatePlantDto GenerateRandomCreatePlantDto(string email)
+    private CreatePlantDto GenerateRandomCreatePlantDto()
     {
         var createPlantDto = new CreatePlantDto
         {
