@@ -45,11 +45,10 @@ public class ClientWantsToLogIn(WebSocketConnectionService webSocketConnectionSe
             
         });
         
-       /* socket.SendDto(new ServerSendsUserInfo
+       socket.SendDto(new ServerSendsUserInfo
         {
             GetUserDto = getUserDto
         });
-        */
     }
 }
 

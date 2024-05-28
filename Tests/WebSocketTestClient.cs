@@ -9,19 +9,23 @@ namespace Tests
     {
         public readonly WebsocketClient Client;
         public readonly List<BaseDto> ReceivedMessages = [];
+        private static readonly JsonSerializerOptions JsonSerializerOptions = new()
+        {
+            PropertyNameCaseInsensitive = true
+        };
 
         public WebSocketTestClient(string? url = null)
         {
             Client = url == null ? new WebsocketClient(new Uri("ws://localhost:" + (Environment.GetEnvironmentVariable("FULLSTACK_API_PORT") ?? "8181"))) : new WebsocketClient(new Uri(url));
             Client.MessageReceived.Subscribe(msg =>
             {
-                BaseDto baseDto = JsonSerializer.Deserialize<BaseDto>(msg.Text);
+                BaseDto baseDto = JsonSerializer.Deserialize<BaseDto>(msg.Text, JsonSerializerOptions);
                 Console.WriteLine("Received message: " + baseDto.eventType);
 
                 if (baseDto.eventType == "ServerSendsErrorMessage" || baseDto.eventType.Contains("ServerResponds") ||
                     baseDto.eventType.Contains("ServerRejects"))
                 {
-                    var error = JsonSerializer.Deserialize<ServerSendsErrorMessage>(msg.Text);
+                    var error = JsonSerializer.Deserialize<ServerSendsErrorMessage>(msg.Text, JsonSerializerOptions);
                     Console.WriteLine("Error: " + error!.Error);
                 }
 

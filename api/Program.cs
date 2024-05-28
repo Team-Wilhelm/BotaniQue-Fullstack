@@ -27,6 +27,10 @@ public static class Startup
     ];
     
     private static readonly List<string?> NonProdEnvironments = ["Development", "Testing"];
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
     
     public static async Task Main(string[] args)
     {
@@ -137,7 +141,7 @@ public static class Startup
                 try
                 {
                     // Check if the message contains a JWT token and if it is valid
-                    var dto = JsonSerializer.Deserialize<BaseDtoWithJwt>(message, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var dto = JsonSerializer.Deserialize<BaseDtoWithJwt>(message, JsonSerializerOptions);
                     if (dto is not null && PublicEvents.Contains(dto.eventType) == false)
                     {
                         if (dto.Jwt is null)

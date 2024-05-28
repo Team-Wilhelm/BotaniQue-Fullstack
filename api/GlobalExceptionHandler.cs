@@ -28,10 +28,11 @@ public static class GlobalExceptionHandler
                 _ => new ServerSendsErrorMessage { Error = message ?? ex.Message }
             };
         else
-            serverResponse = new ServerSendsErrorMessage
-            {
-                Error = "Something went wrong. Please try again later."
-            };
+        {
+            serverResponse = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Testing" 
+                ? new ServerSendsErrorMessage { Error = ex.Message } 
+                : new ServerSendsErrorMessage { Error = "Something went wrong. Please try again later." };
+        }
 
         socket.SendDto(serverResponse);
     }
