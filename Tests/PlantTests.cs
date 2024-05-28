@@ -26,7 +26,16 @@ public class PlantTests : TestBase
             return receivedMessages.Count(e => e.eventType == nameof(ServerSavesPlant)) == 1 &&
             receivedMessages.Count(e => e.eventType == nameof(ServerSendsStats)) == 1;
         });
-        
+    }
+
+    [Test]
+    public async Task GetAllPlants()
+    {
+        var jwtAndEmail = await SignUpAndLogIn();
+        var jwt = jwtAndEmail[DictionaryKeys.Jwt];
+
+        var webSocketTestClient = await new WebSocketTestClient().ConnectAsync();
+
         await webSocketTestClient.DoAndAssert(new ClientWantsAllPlantsDto
         {
             Jwt = jwt,
