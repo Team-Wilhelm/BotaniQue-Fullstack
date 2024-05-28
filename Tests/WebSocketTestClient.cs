@@ -1,4 +1,5 @@
 using System.Text.Json;
+using api.Events.Global;
 using lib;
 using Websocket.Client;
 
@@ -12,12 +13,20 @@ namespace Tests
         public WebSocketTestClient(string? url = null)
         {
             Client = url == null ? new WebsocketClient(new Uri("ws://localhost:" + (Environment.GetEnvironmentVariable("FULLSTACK_API_PORT") ?? "8181"))) : new WebsocketClient(new Uri(url));
-            Client.MessageReceived.Subscribe((Action<ResponseMessage>) (msg =>
+            Client.MessageReceived.Subscribe(msg =>
             {
                 BaseDto baseDto = JsonSerializer.Deserialize<BaseDto>(msg.Text);
+
+                if (baseDto.eventType == "ServerSendsError")
+                {
+                    var error = JsonSerializer.Deserialize<ServerSendsErrorMessage>(msg.Text);
+                    throw new Exception(error!.Error);
+                }
+                
+                    
                 lock (ReceivedMessages)
                     ReceivedMessages.Add(baseDto);
-            }));
+            });
         }
 
         public async Task<WebSocketTestClient> ConnectAsync()
