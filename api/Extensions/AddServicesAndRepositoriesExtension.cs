@@ -29,7 +29,7 @@ public static class AddServicesAndRepositoriesExtension
         services.AddSingleton<StatsService>();
         
         // External services
-        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Testing")
+        if (EnvironmentHelper.IsTesting())
         {
             services.AddSingleton<IImageBackgroundRemoverService, MockImageBackgroundRemoverService>();
             services.AddSingleton<IBlobStorageService, MockBlobStorageService>();

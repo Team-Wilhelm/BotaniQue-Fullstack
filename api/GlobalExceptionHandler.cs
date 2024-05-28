@@ -29,7 +29,7 @@ public static class GlobalExceptionHandler
             };
         else
         {
-            serverResponse = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Testing" 
+            serverResponse = EnvironmentHelper.IsTesting() 
                 ? new ServerSendsErrorMessage { Error = ex.Message } 
                 : new ServerSendsErrorMessage { Error = "Something went wrong. Please try again later." };
         }
