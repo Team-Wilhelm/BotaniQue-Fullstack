@@ -35,7 +35,4 @@ jobs:
           MQTT_CLIENT_ID: ${{ secrets.MQTT_CLIENT_ID }}
           MQTT_SUBSCRIBE_TOPIC: ${{ secrets.MQTT_SUBSCRIBE_TOPIC }}
           MQTT_PUBLISH_TOPIC: ${{ secrets.MQTT_PUBLISH_TOPIC }}
-          
-          AZURE_VISION_KEY: ${{ secrets.AZURE_VISION_KEY }}
-          AZURE_VISION_ENDPOINT: ${{ secrets.AZURE_VISION_ENDPOINT }}
         run: cd Tests && dotnet test

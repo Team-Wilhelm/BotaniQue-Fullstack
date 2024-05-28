@@ -6,7 +6,7 @@ public static class ConfigureExtensions
 {
     public static void ConfigureOptions(this WebApplicationBuilder builder)
     {
-        if (Environment.GetEnvironmentVariable("CI") is not null)
+        if (EnvironmentHelper.IsCi())
         {
             builder.Services.Configure<JwtOptions>(options =>
             {
@@ -25,7 +25,9 @@ public static class ConfigureExtensions
                 options.SubscribeTopic = Environment.GetEnvironmentVariable("MQTT_SUBSCRIBE_TOPIC") ?? throw new Exception("MQTT subscribe topic is missing");
                 options.PublishTopic = Environment.GetEnvironmentVariable("MQTT_PUBLISH_TOPIC") ?? throw new Exception("MQTT publish topic is missing");
             });
-            
+
+            if (EnvironmentHelper.IsTesting()) return;
+          
             builder.Services.Configure<AzureVisionOptions>(options =>
             {
                 options.RemoveBackgroundEndpoint = Environment.GetEnvironmentVariable("AZURE_VISION_REMOVE_BACKGROUND_ENDPOINT") ?? throw new Exception("Azure Vision endpoint is missing");

@@ -114,20 +114,21 @@ public class PlantRepository(IDbContextFactory<ApplicationDbContext> dbContextFa
             .Select(p => p.Plant)
             .ToListAsync();
     }
-
-    public async Task<int> GetHappyPlantsCount(string userEmail)
+    public async Task<Stats> GetStats(string userEmail)
     {
         await using var context = await dbContextFactory.CreateDbContextAsync();
-        return await context.Plants
+        var totalPlants = await context.Plants.CountAsync(p => p.UserEmail == userEmail);
+        var happyPlants = await context.Plants
             .Include(plant => plant.ConditionsLogs)
             .Where(p => p.UserEmail == userEmail && p.ConditionsLogs.Count != 0)
             .CountAsync(p => p.ConditionsLogs.OrderByDescending(log => log.TimeStamp).FirstOrDefault()!.Mood > 2);
-    }
+        var collections = await context.Collections.CountAsync(c => c.UserEmail == userEmail);
 
-    public async Task<int> GetTotalPlantsCount(string userEmail)
-    {
-        await using var context = await dbContextFactory.CreateDbContextAsync();
-        return await context.Plants
-            .CountAsync(p => p.UserEmail == userEmail);
+        return new Stats
+        {
+            TotalPlants = totalPlants,
+            HappyPlants = happyPlants,
+            Collections = collections
+        };
     }
 }
