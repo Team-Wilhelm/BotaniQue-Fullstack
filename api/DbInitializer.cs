@@ -12,7 +12,7 @@ using Shared.Models.Information;
 
 namespace api;
 
-public class DbInitializer(IServiceProvider serviceProvider, string? defaultPlantImage = null)
+public class DbInitializer(IServiceProvider serviceProvider)
 {
     private const string DefaultUserEmail = "bob@botanique.com";
     private readonly IServiceScope _scope = serviceProvider.CreateScope();
@@ -154,26 +154,29 @@ public class DbInitializer(IServiceProvider serviceProvider, string? defaultPlan
     {
         // Create 100 logs for each plant
         var conditionsLogService = _scope.ServiceProvider.GetRequiredService<ConditionsLogsService>();
+        var aloeVeraRequirements = _plants["Aloe Vera"].Requirements!;
+        var pricklyPearRequirements = _plants["Prickly Pear"].Requirements!;
+        
         for (var i = 0; i < 100; i++)
         {
             await conditionsLogService.CreateConditionsLogAsync(
                 new CreateConditionsLogDto
                 {
                     DeviceId = _plants["Aloe Vera"].DeviceId!,
-                    SoilMoisturePercentage = GetRandomLevelValue(),
-                    Light = GetRandomLevelValue(),
+                    SoilMoisturePercentage = GetValueNearOrInIdealRange(aloeVeraRequirements.SoilMoistureLevel),
+                    Light = GetValueNearOrInIdealRange(aloeVeraRequirements.LightLevel),
                     Temperature = GetRandomTemperature(),
-                    Humidity = GetRandomLevelValue(),
+                    Humidity = GetValueNearOrInIdealRange(aloeVeraRequirements.HumidityLevel),
                 }
             );
             await conditionsLogService.CreateConditionsLogAsync(
                 new CreateConditionsLogDto
                 {
                     DeviceId = _plants["Prickly Pear"].DeviceId!,
-                    SoilMoisturePercentage = GetRandomLevelValue(),
-                    Light = GetRandomLevelValue(),
+                    SoilMoisturePercentage = GetValueNearOrInIdealRange(pricklyPearRequirements.SoilMoistureLevel),
+                    Light = GetValueNearOrInIdealRange(pricklyPearRequirements.LightLevel),
                     Temperature = GetRandomTemperature(),
-                    Humidity = GetRandomLevelValue(),
+                    Humidity = GetValueNearOrInIdealRange(pricklyPearRequirements.HumidityLevel),
                 }
             );
         }
@@ -213,6 +216,19 @@ public class DbInitializer(IServiceProvider serviceProvider, string? defaultPlan
     {
         var random = new Random();
         return random.Next(-20, 45);
+    }
+    
+    private double GetValueNearOrInIdealRange(RequirementLevel level)
+    {
+        var idealValueRange = level.GetRange();
+        var random = new Random();
+        var value = random.NextDouble() * 100;
+        while (value < idealValueRange.Min - 10 || value > idealValueRange.Max + 10)
+        {
+            value = random.NextDouble() * 100;
+        }
+
+        return value;
     }
     
     private double GetValueOutsideOfIdealRange(RequirementLevel level)

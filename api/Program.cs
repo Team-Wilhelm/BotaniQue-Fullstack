@@ -60,7 +60,7 @@ public static class Startup
 
             await dbContainer.StartAsync();
 
-            var connectionString = dbContainer.GetConnectionString();
+            var connectionString = dbContainer.GetConnectionString() + ";Include Error Detail=true"; 
             builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
             {
                 options.UseNpgsql(connectionString ?? throw new Exception("Connection string cannot be null"));
@@ -86,7 +86,7 @@ public static class Startup
         // be careful with using --db-init on production, it will delete all data
         if (args.Contains("--db-init"))
         {
-            var dbInitializer = new DbInitializer(app.Services, app.Configuration["AzureBlobStorage:DefaultPlantImage"]);
+            var dbInitializer = new DbInitializer(app.Services);
             await dbInitializer.InitializeDatabaseAsync();
             await dbInitializer.PopulateDatabaseAsync(); 
         }
