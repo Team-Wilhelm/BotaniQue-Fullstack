@@ -12,7 +12,7 @@ public class ClientWantsToLogOut(WebSocketConnectionService connectionService)
 {
     public override Task Handle(ClientWantsToLogOutDto dto, IWebSocketConnection socket)
     {
-        connectionService.RemoveConnection(socket);
+        connectionService.RemoveEmailFromConnection(socket);
         socket.SendDto(new ServerLogsOutUser());
         return Task.CompletedTask;
     }
