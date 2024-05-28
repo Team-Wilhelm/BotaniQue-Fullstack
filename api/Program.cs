@@ -66,7 +66,6 @@ public static class Startup
                 options.UseNpgsql(connectionString ?? throw new Exception("Connection string cannot be null"));
             });
         }
-
         else
         {
             var connectionString = builder.Configuration.GetConnectionString("BotaniqueDb");
@@ -84,23 +83,12 @@ public static class Startup
         
         var app = builder.Build();
 
+        // be careful with using --db-init on production, it will delete all data
         if (args.Contains("--db-init"))
         {
-            var scope = app.Services.CreateScope();
-            var db = await app.Services.GetRequiredService<IDbContextFactory<ApplicationDbContext>>().CreateDbContextAsync();
-             
-            if (EnvironmentHelper.IsNonProd())
-            {
-                await db.Database.EnsureDeletedAsync();
-            }
-            
-            await db.Database.EnsureCreatedAsync();
-            await db.Database.MigrateAsync();
-            
-            if (EnvironmentHelper.IsNonProd())
-            {
-                await db.SeedDevelopmentDataAsync(scope, app.Configuration["AzureBlob:DefaultPlantImageUrl"] ?? "https://example.com");
-            }
+            var dbInitializer = new DbInitializer(app.Services, app.Configuration["AzureBlobStorage:DefaultPlantImage"]);
+            await dbInitializer.InitializeDatabaseAsync();
+            await dbInitializer.PopulateDatabaseAsync(); 
         }
 
         builder.WebHost.UseUrls("http://*:9999");
