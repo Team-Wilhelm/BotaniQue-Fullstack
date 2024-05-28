@@ -10,7 +10,7 @@ Created as an exam project by Júlia Ilášová and Maria Nielsen
 
 ## Project Components
 
-* Backend Server: Processes data from the IoT device, determines plant health, and provides real-time updates to the mobile application as well as handling authentication, data storage and business logic for the mobile   app.
+* Backend Server: Processes data from the IoT device, determines plant health, and provides real-time updates as well as handling authentication, data storage and business logic for the mobile app.
 * [IoT Device](https://github.com/team-wilhelm/botanique-iot) (Smart Plant Pot): An ESP32 microcontroller with sensors for soil moisture, air humidity, temperature, and light, and an OLED screen for displaying the plant's mood.
 * [Mobile App](https://team-wilhelm.github.io/BotaniQue-MobDev/) (Frontend application): Developed in Flutter, it allows users to manage plants and view their conditions.
 
