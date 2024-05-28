@@ -1,5 +1,7 @@
 ﻿using api.Core.Options;
 using api.Core.Services.External.BlobStorage;
+using api.Events.Global;
+using api.Extensions;
 using Infrastructure.Repositories;
 using Microsoft.Extensions.Options;
 using Shared.Dtos.FromClient.Plant;
@@ -13,7 +15,7 @@ public class PlantService(
     PlantRepository plantRepository,
     RequirementService requirementService,
     IBlobStorageService blobStorageService,
-    IOptions<AzureBlobStorageOptions> azureBlobStorageOptions)
+    IOptions<AzureBlobStorageOptions> azureBlobStorageOptions, WebSocketConnectionService webSocketConnectionService)
 {
     public async Task<Plant> CreatePlant(CreatePlantDto createPlantDto, string loggedInUser)
     {
@@ -28,6 +30,16 @@ public class PlantService(
             ímageUrl = await blobStorageService.SaveImageToBlobStorage(createPlantDto.Base64Image, loggedInUser, true);
         }
         
+        
+        if (!String.IsNullOrEmpty(createPlantDto.DeviceId))
+        {
+            var deviceExists = await plantRepository.DoesDeviceIdExist(createPlantDto.DeviceId);
+            HandleExistingDeviceId(loggedInUser);
+            if (deviceExists)
+            {
+                createPlantDto.DeviceId = null;
+            }
+        }
         // Insert plant first to get the plantId
         var plant = new Plant
         {
@@ -40,6 +52,8 @@ public class PlantService(
             LatestChange = DateTime.UtcNow
         };
         
+        
+        
         await plantRepository.CreatePlant(plant);
 
         // Create requirements for the plant to crete a link between the two
@@ -48,6 +62,12 @@ public class PlantService(
         plant.Requirements = await requirementService.CreateRequirements(requirementsDto);
         plant.ImageUrl = blobStorageService.GenerateSasUri(plant.ImageUrl, true);
         return plant;
+    }
+
+    private void HandleExistingDeviceId(string loggedInUser)
+    {
+        var connection = webSocketConnectionService.GetConnectionByEmail(loggedInUser);
+        connection?.SendDto(new ServerSendsErrorMessage{Error = "Device ID already in use"});
     }
 
     public async Task<Plant> GetPlantById(Guid id, string requesterEmail)
@@ -87,6 +107,16 @@ public class PlantService(
         if (updatePlantDto.Base64Image is not null)
         {
           imageUrl = await blobStorageService.SaveImageToBlobStorage(updatePlantDto.Base64Image, requesterEmail, true, plant.ImageUrl);
+        }
+        
+        if (!String.IsNullOrEmpty(updatePlantDto.DeviceId))
+        {
+            var deviceExists = await plantRepository.DoesDeviceIdExist(updatePlantDto.DeviceId);
+            HandleExistingDeviceId(requesterEmail);
+            if (deviceExists)
+            {
+                updatePlantDto.DeviceId = null;
+            }
         }
         
         // Update the plant
