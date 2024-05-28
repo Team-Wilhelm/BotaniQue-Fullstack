@@ -44,6 +44,7 @@ public class ClientWantsToLogIn(WebSocketConnectionService webSocketConnectionSe
             Jwt = jwt,
             
         });
+        
         socket.SendDto(new ServerSendsUserInfo
         {
             GetUserDto = getUserDto

@@ -26,6 +26,8 @@ public static class Startup
         nameof(ClientWantsToSignUp)
     ];
     
+    private static readonly List<string?> NonProdEnvironments = ["Development", "Testing"];
+    
     public static async Task Main(string[] args)
     {
         var app = await StartApi(args);
@@ -86,7 +88,7 @@ public static class Startup
             var scope = app.Services.CreateScope();
             var db = await app.Services.GetRequiredService<IDbContextFactory<ApplicationDbContext>>().CreateDbContextAsync();
              
-            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            if (NonProdEnvironments.Contains(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")))
             {
                 await db.Database.EnsureDeletedAsync();
             }
@@ -94,7 +96,7 @@ public static class Startup
             await db.Database.EnsureCreatedAsync();
             await db.Database.MigrateAsync();
             
-            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            if (NonProdEnvironments.Contains(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")))
             {
                 await db.SeedDevelopmentDataAsync(scope, app.Configuration["AzureBlob:DefaultPlantImageUrl"] ?? "https://example.com");
             }

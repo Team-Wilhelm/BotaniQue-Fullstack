@@ -35,8 +35,10 @@ public abstract class TestBase
         
         var jwtSubscription = webSocketTestClient.Client.MessageReceived.Subscribe(msg =>
         {
+            var eventType = JsonSerializer.Deserialize<BaseDto>(msg.Text).eventType;
+            if (eventType != nameof(ServerAuthenticatesUser)) return;
             var serverAuthenticates = JsonSerializer.Deserialize<ServerAuthenticatesUser>(msg.Text, options: new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            jwt = serverAuthenticates.Jwt;
+            jwt = serverAuthenticates!.Jwt;
         });
         webSocketTestClient.Send(new ClientWantsToLogInDto { LoginDto = loginDto });
         

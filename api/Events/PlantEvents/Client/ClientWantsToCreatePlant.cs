@@ -12,7 +12,7 @@ namespace api.Events.PlantEvents.Client;
 
 public class ClientWantsToCreatePlantDto: BaseDtoWithJwt
 {
-    public CreatePlantDto CreatePlantDto { get; set; }
+    public required CreatePlantDto CreatePlantDto { get; set; }
 }
 
 [ValidateDataAnnotations]
@@ -21,18 +21,15 @@ public class ClientWantsToCreatePlant(PlantService plantService, JwtService jwtS
     public override async Task Handle(ClientWantsToCreatePlantDto dto, IWebSocketConnection socket)
     {
         var email = jwtService.GetEmailFromJwt(dto.Jwt!);
-        var plant = plantService.CreatePlant(dto.CreatePlantDto, email);
-        var stats = statsService.GetStats(email);
-        
-        await Task.WhenAll(plant, stats);
+        var plant = await plantService.CreatePlant(dto.CreatePlantDto, email);
         
         var serverCreatesNewPlant = new ServerSavesPlant
         {
-            Plant = plant.Result
+            Plant = plant
         };
-        
         socket.SendDto(serverCreatesNewPlant);
         
-        socket.SendDto(new ServerSendsStats{Stats = stats.Result});
+       var stats = await statsService.GetStats(email);
+       socket.SendDto(new ServerSendsStats{Stats = stats});
     }
 }
