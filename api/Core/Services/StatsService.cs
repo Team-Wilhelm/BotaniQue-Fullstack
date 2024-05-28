@@ -7,15 +7,17 @@ public class StatsService(CollectionsService collectionsService, PlantService pl
 {
     public async Task<Stats> GetStats(string email)
     {
-        var totalPlants = await plantService.GetTotalPlantsCount(email);
-        var happyPlants = await plantService.GetHappyPlantsCount(email);
-        var collections = await collectionsService.GetTotalCollectionsCount(email);
+        var totalPlantsTask = plantService.GetTotalPlantsCount(email);
+        var happyPlantsTask = plantService.GetHappyPlantsCount(email);
+        var collectionsTask = collectionsService.GetTotalCollectionsCount(email);
+
+        await Task.WhenAll(totalPlantsTask, happyPlantsTask, collectionsTask);
 
         return new Stats
         {
-            TotalPlants = totalPlants,
-            HappyPlants = happyPlants,
-            Collections = collections
+            TotalPlants = totalPlantsTask.Result,
+            HappyPlants = happyPlantsTask.Result,
+            Collections = collectionsTask.Result
         };
     }
 }
