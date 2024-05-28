@@ -20,7 +20,6 @@ namespace Tests
             Client.MessageReceived.Subscribe(msg =>
             {
                 BaseDto baseDto = JsonSerializer.Deserialize<BaseDto>(msg.Text, JsonSerializerOptions);
-                Console.WriteLine("Received message: " + baseDto.eventType);
 
                 if (baseDto.eventType == "ServerSendsErrorMessage" || baseDto.eventType.Contains("ServerResponds") ||
                     baseDto.eventType.Contains("ServerRejects"))
