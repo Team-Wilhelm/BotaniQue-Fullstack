@@ -1,4 +1,3 @@
-using api.Events.Collections.Server;
 using api.Events.PlantEvents.Client;
 using api.Events.PlantEvents.Server;
 using api.Events.Statistics;
@@ -19,6 +18,7 @@ public class PlantTests : TestBase
         var createPlantDto = GenerateRandomCreatePlantDto();
         
         var webSocketTestClient = await new WebSocketTestClient().ConnectAsync();
+        webSocketTestClient.SubscribeToErrors();
         
         await webSocketTestClient.DoAndAssert(new ClientWantsToCreatePlantDto { CreatePlantDto = createPlantDto, Jwt = jwt }, receivedMessages =>
         {
