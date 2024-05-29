@@ -112,10 +112,14 @@ public class PlantService(
         if (!String.IsNullOrEmpty(updatePlantDto.DeviceId))
         {
             var deviceExists = await plantRepository.DoesDeviceIdExist(updatePlantDto.DeviceId);
-            HandleExistingDeviceId(requesterEmail);
             if (deviceExists)
             {
-                updatePlantDto.DeviceId = null;
+                var plantWithDeviceId = await plantRepository.GetPlantIdByDeviceIdAsync(updatePlantDto.DeviceId);
+                if (!plantWithDeviceId.ToString().Equals(updatePlantDto.DeviceId))
+                {
+                    HandleExistingDeviceId(requesterEmail);
+                    updatePlantDto.DeviceId = null;
+                }
             }
         }
         
