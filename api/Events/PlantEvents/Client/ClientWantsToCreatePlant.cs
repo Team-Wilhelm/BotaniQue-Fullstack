@@ -1,6 +1,7 @@
 ﻿using api.Core.Services;
 using api.EventFilters;
 using api.Events.PlantEvents.Server;
+using api.Events.Statistics;
 using api.Extensions;
 using Fleck;
 using lib;
@@ -11,11 +12,11 @@ namespace api.Events.PlantEvents.Client;
 
 public class ClientWantsToCreatePlantDto: BaseDtoWithJwt
 {
-    public CreatePlantDto CreatePlantDto { get; set; }
+    public required CreatePlantDto CreatePlantDto { get; set; }
 }
 
 [ValidateDataAnnotations]
-public class ClientWantsToCreatePlant(PlantService plantService, JwtService jwtService): BaseEventHandler<ClientWantsToCreatePlantDto>
+public class ClientWantsToCreatePlant(PlantService plantService, JwtService jwtService, StatsService statsService): BaseEventHandler<ClientWantsToCreatePlantDto>
 {
     public override async Task Handle(ClientWantsToCreatePlantDto dto, IWebSocketConnection socket)
     {
@@ -26,7 +27,15 @@ public class ClientWantsToCreatePlant(PlantService plantService, JwtService jwtS
         {
             Plant = plant
         };
-        
         socket.SendDto(serverCreatesNewPlant);
+        
+        var allPlants = await plantService.GetPlantsForUser(email, 1, 100);
+        socket.SendDto(new ServerSendsPlants
+        {
+            Plants = allPlants
+        });
+        
+       var stats = await statsService.GetStats(email);
+       socket.SendDto(new ServerSendsStats{Stats = stats});
     }
 }

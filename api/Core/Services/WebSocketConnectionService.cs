@@ -1,5 +1,4 @@
 using Fleck;
-using Shared;
 using Shared.Wrappers;
 
 namespace api;
@@ -18,6 +17,12 @@ public class WebSocketConnectionService
     {
         var clientId = connection.ConnectionInfo.Id;
         _connectedClients[clientId].Email = email;
+    }
+    
+    public void RemoveEmailFromConnection(IWebSocketConnection connection)
+    {
+        var clientId = connection.ConnectionInfo.Id;
+        _connectedClients[clientId].Email = null;
     }
 
     public void RemoveConnection(IWebSocketConnection connection)

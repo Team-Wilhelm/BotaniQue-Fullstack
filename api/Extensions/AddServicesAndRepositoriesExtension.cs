@@ -1,6 +1,7 @@
 using api.Core.Services;
 using api.Core.Services.External.BackgroundRemoval;
 using api.Core.Services.External.BlobStorage;
+using api.Events.Auth.Client;
 using Infrastructure.Repositories;
 
 namespace api.Extensions;
@@ -26,9 +27,13 @@ public static class AddServicesAndRepositoriesExtension
         services.AddSingleton<RequirementService>();
         services.AddSingleton<MqttSubscriberService>();
         services.AddSingleton<MqttPublisherService>();
+        services.AddSingleton<StatsService>();
+        
+        // Helpers
+        services.AddSingleton<InitialDataHelper>();
         
         // External services
-        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Testing")
+        if (EnvironmentHelper.IsTesting())
         {
             services.AddSingleton<IImageBackgroundRemoverService, MockImageBackgroundRemoverService>();
             services.AddSingleton<IBlobStorageService, MockBlobStorageService>();

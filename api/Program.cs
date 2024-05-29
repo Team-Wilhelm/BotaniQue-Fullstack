@@ -1,6 +1,5 @@
 using System.Reflection;
 using System.Text.Json;
-using api.Core.Options;
 using api.Core.Services;
 using api.Events.Auth.Client;
 using api.Extensions;
@@ -9,7 +8,6 @@ using Infrastructure;
 using lib;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
-using Shared.Dtos;
 using Shared.Exceptions;
 using Shared.Models;
 using Testcontainers.PostgreSql;
@@ -25,6 +23,11 @@ public static class Startup
         nameof(ClientWantsToLogOut),
         nameof(ClientWantsToSignUp)
     ];
+    
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
     
     public static async Task Main(string[] args)
     {
@@ -46,7 +49,7 @@ public static class Startup
 
         var builder = WebApplication.CreateBuilder(args);
 
-        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Testing")
+        if (EnvironmentHelper.IsTesting())
         {
             var dbContainer = 
                 new PostgreSqlBuilder()
@@ -57,13 +60,12 @@ public static class Startup
 
             await dbContainer.StartAsync();
 
-            var connectionString = dbContainer.GetConnectionString();
+            var connectionString = dbContainer.GetConnectionString() + ";Include Error Detail=true"; 
             builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
             {
                 options.UseNpgsql(connectionString ?? throw new Exception("Connection string cannot be null"));
             });
         }
-
         else
         {
             var connectionString = builder.Configuration.GetConnectionString("BotaniqueDb");
@@ -81,23 +83,12 @@ public static class Startup
         
         var app = builder.Build();
 
+        // be careful with using --db-init on production, it will delete all data
         if (args.Contains("--db-init"))
         {
-            var scope = app.Services.CreateScope();
-            var db = await app.Services.GetRequiredService<IDbContextFactory<ApplicationDbContext>>().CreateDbContextAsync();
-             
-            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
-            {
-                await db.Database.EnsureDeletedAsync();
-            }
-            
-            await db.Database.EnsureCreatedAsync();
-            await db.Database.MigrateAsync();
-            
-            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
-            {
-                await db.SeedDevelopmentDataAsync(scope, app.Configuration["AzureBlob:DefaultPlantImageUrl"] ?? "https://example.com");
-            }
+            var dbInitializer = new DbInitializer(app.Services);
+            await dbInitializer.InitializeDatabaseAsync();
+            await dbInitializer.PopulateDatabaseAsync(); 
         }
 
         builder.WebHost.UseUrls("http://*:9999");
@@ -135,7 +126,7 @@ public static class Startup
                 try
                 {
                     // Check if the message contains a JWT token and if it is valid
-                    var dto = JsonSerializer.Deserialize<BaseDtoWithJwt>(message, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var dto = JsonSerializer.Deserialize<BaseDtoWithJwt>(message, JsonSerializerOptions);
                     if (dto is not null && PublicEvents.Contains(dto.eventType) == false)
                     {
                         if (dto.Jwt is null)

@@ -1,4 +1,3 @@
-using api.Events.Collections.Server;
 using api.Events.PlantEvents.Client;
 using api.Events.PlantEvents.Server;
 using lib;
@@ -15,8 +14,7 @@ public class PlantTests : TestBase
     {
         var jwtAndEmail = await SignUpAndLogIn();
         var jwt = jwtAndEmail[DictionaryKeys.Jwt];
-        var email = jwtAndEmail[DictionaryKeys.Email];
-        var createPlantDto = GenerateRandomCreatePlantDto(email);
+        var createPlantDto = GenerateRandomCreatePlantDto();
         
         var webSocketTestClient = await new WebSocketTestClient().ConnectAsync();
         
@@ -24,7 +22,16 @@ public class PlantTests : TestBase
         {
             return receivedMessages.Count(e => e.eventType == nameof(ServerSavesPlant)) == 1;
         });
-        
+    }
+
+    [Test]
+    public async Task GetAllPlants()
+    {
+        var jwtAndEmail = await SignUpAndLogIn();
+        var jwt = jwtAndEmail[DictionaryKeys.Jwt];
+
+        var webSocketTestClient = await new WebSocketTestClient().ConnectAsync();
+
         await webSocketTestClient.DoAndAssert(new ClientWantsAllPlantsDto
         {
             Jwt = jwt,
@@ -36,7 +43,7 @@ public class PlantTests : TestBase
         });
     }
     
-    private CreatePlantDto GenerateRandomCreatePlantDto(string email)
+    private CreatePlantDto GenerateRandomCreatePlantDto()
     {
         var createPlantDto = new CreatePlantDto
         {
