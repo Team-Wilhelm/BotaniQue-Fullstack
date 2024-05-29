@@ -22,11 +22,17 @@ public class ClientWantsToDeletePlant(PlantService plantService, JwtService jwtS
     public override async Task Handle(ClientWantsToDeletePlantDto dto, IWebSocketConnection socket)
     {
         var email = jwtService.GetEmailFromJwt(dto.Jwt!);
-        var stats = await statsService.GetStats(email);
         
         await plantService.DeletePlant(dto.PlantId, email);
         socket.SendDto( new ServerConfirmsDelete());
         
+        var allPlants = await plantService.GetPlantsForUser(email, 1, 100);
+        socket.SendDto(new ServerSendsPlants
+        {
+            Plants = allPlants
+        });
+        
+        var stats = await statsService.GetStats(email);
         socket.SendDto(new ServerSendsStats{Stats = stats});
     }
 }

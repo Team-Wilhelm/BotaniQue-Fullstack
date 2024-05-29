@@ -1,4 +1,5 @@
 ﻿using api.Events.Conditions.Server;
+using api.Events.PlantEvents.Server;
 using api.Extensions;
 using Infrastructure.Repositories;
 using Shared.Dtos;
@@ -44,6 +45,11 @@ public class ConditionsLogsService (WebSocketConnectionService webSocketConnecti
         connection?.SendDto(new ServerSendsLatestConditionsForPlant
         {
             ConditionsLog = addedLog
+        });
+        var allPlants = await plantService.GetPlantsForUser(email, 1, 100);
+        connection?.SendDto(new ServerSendsPlants
+        {
+            Plants = allPlants
         });
         
         if (newMood != recentMood)

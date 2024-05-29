@@ -19,14 +19,20 @@ public class ClientWantsToUpdatePlant(PlantService plantService, JwtService jwtS
     public override async Task Handle(ClientWantsToUpdatePlantDto dto, IWebSocketConnection socket)
     {
         var email = jwtService.GetEmailFromJwt(dto.Jwt!);
-        var plant = await plantService.UpdatePlant(dto.UpdatePlantDto, email);
-        var stats = await statsService.GetStats(email);
         
+        var plant = await plantService.UpdatePlant(dto.UpdatePlantDto, email);
         socket.SendDto(new ServerSavesPlant
         {
             Plant = plant
         });
         
+        var allPlants = await plantService.GetPlantsForUser(email, 1, 100);
+        socket.SendDto(new ServerSendsPlants
+        {
+            Plants = allPlants
+        });
+        
+        var stats = await statsService.GetStats(email);
         socket.SendDto(new ServerSendsStats{Stats = stats});
     }
 }

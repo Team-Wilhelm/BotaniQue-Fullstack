@@ -11,8 +11,15 @@ public class PlantRepository(IDbContextFactory<ApplicationDbContext> dbContextFa
     public async Task CreatePlant(Plant plant)
     {
         await using var context = await dbContextFactory.CreateDbContextAsync();
+        
         await context.Plants.AddAsync(plant);
         await context.SaveChangesAsync();
+    }
+    
+    public async Task<bool> DoesDeviceIdExist(string deviceId)
+    {
+        await using var context = await dbContextFactory.CreateDbContextAsync();
+        return await context.Plants.AnyAsync(p => p.DeviceId == deviceId);
     }
 
     public async Task<Plant?> GetPlantById(Guid id)
