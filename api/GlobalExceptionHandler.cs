@@ -25,7 +25,7 @@ public static class GlobalExceptionHandler
                 RegisterDeviceException => new ServerRespondsRegisterDevice { Error = ex.Message },
                 NotAuthenticatedException => new ServerRespondsNotAuthenticated { Error = ex.Message },
                 InvalidFileFormatException => new ServerRejectsInvalidFile { Error = ex.Message },
-                _ => new ServerSendsErrorMessage { Error = message ?? ex.Message }
+                _ => new ServerSendsErrorMessage { Error = ex.Message }
             };
         else
         {
