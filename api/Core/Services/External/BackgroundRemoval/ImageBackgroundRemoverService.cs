@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using api.Core.Options;
 using Microsoft.Extensions.Options;
+using Serilog;
 using Shared.Exceptions;
 
 namespace api.Core.Services.External.BackgroundRemoval;
@@ -24,6 +25,8 @@ public class ImageBackgroundRemoverService(IOptions<AzureVisionOptions> options)
 
         if (response.StatusCode != HttpStatusCode.OK)
         {
+            Log.Error(response.StatusCode.ToString());
+            Log.Error(response.Content.ReadAsStringAsync().Result);
             throw new AppException("Failed to remove background from image.");
         }
         
