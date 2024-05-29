@@ -21,13 +21,13 @@ public class ClientWantsToCreateCollection(CollectionsService collectionsService
         var email = jwtService.GetEmailFromJwt(dto.Jwt!);
         await collectionsService.CreateCollection(dto.CreateCollectionDto, email);
         var allCollections = await collectionsService.GetCollectionsForUser(email);
-        var stats = await statsService.GetStats(email);
         
         socket.SendDto(new ServerSendsAllCollections
         {
             Collections = allCollections.ToList()
         });
         
+        var stats = await statsService.GetStats(email);
         socket.SendDto(new ServerSendsStats{Stats = stats});
     }
 }
