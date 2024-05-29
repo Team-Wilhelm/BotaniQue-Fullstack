@@ -105,7 +105,7 @@ public class PlantRepository(IDbContextFactory<ApplicationDbContext> dbContextFa
         await using var context = await dbContextFactory.CreateDbContextAsync();
         return await context.Plants
             .Include(plant => plant.Requirements)
-            .Include(plant => plant.ConditionsLogs)
+            .Include(plant => plant.ConditionsLogs.OrderByDescending(log => log.TimeStamp).Take(1))
             .Where(p => p.UserEmail == requesterEmail && p.ConditionsLogs.Count != 0)
             .Select(p => new
             {
@@ -121,6 +121,7 @@ public class PlantRepository(IDbContextFactory<ApplicationDbContext> dbContextFa
             .Select(p => p.Plant)
             .ToListAsync();
     }
+    
     public async Task<Stats> GetStats(string userEmail)
     {
         await using var context = await dbContextFactory.CreateDbContextAsync();

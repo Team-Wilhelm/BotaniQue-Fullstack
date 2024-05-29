@@ -22,10 +22,9 @@ public class MqttPublisherService
         if (string.IsNullOrEmpty(_options.Value.Username) || _options.Value.Username == "FILL_ME_IN")
             throw new Exception("MQTT username not set in appsettings.json");
     }
-    public async Task PublishAsync(MoodDto mood, long deviceId)
+    public async Task PublishAsync(MoodDto mood, string deviceId)
     {
         var mqttFactory = new MqttFactory();
-        
        
         using var mqttClient = mqttFactory.CreateMqttClient();
         var mqttClientOptions = new MqttClientOptionsBuilder()

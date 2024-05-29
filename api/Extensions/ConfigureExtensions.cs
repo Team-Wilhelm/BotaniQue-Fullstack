@@ -26,7 +26,14 @@ public static class ConfigureExtensions
                 options.PublishTopic = Environment.GetEnvironmentVariable("MQTT_PUBLISH_TOPIC") ?? throw new Exception("MQTT publish topic is missing");
             });
 
-            if (EnvironmentHelper.IsTesting()) return;
+            if (EnvironmentHelper.IsTesting())
+            {
+                builder.Services.Configure<AzureBlobStorageOptions>(options =>
+                {
+                    options.DefaultPlantImageUrl = "https://example.com";
+                });
+                return;
+            }
           
             builder.Services.Configure<AzureVisionOptions>(options =>
             {
