@@ -29,6 +29,12 @@ public class ClientWantsToCreatePlant(PlantService plantService, JwtService jwtS
         };
         socket.SendDto(serverCreatesNewPlant);
         
+        var allPlants = await plantService.GetPlantsForUser(email, 1, 100);
+        socket.SendDto(new ServerSendsPlants
+        {
+            Plants = allPlants
+        });
+        
        var stats = await statsService.GetStats(email);
        socket.SendDto(new ServerSendsStats{Stats = stats});
     }
