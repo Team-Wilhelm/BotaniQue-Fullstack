@@ -42,12 +42,22 @@ public class ConditionsLogsRepository (IDbContextFactory<ApplicationDbContext> d
             .FirstOrDefaultAsync();
     }
 
+    // TODO: returns empty if there is no data in the past 7 days, but should then look further back
     public async Task<List<ConditionsLog>> GetConditionsLogsForPlant(Guid plantId, int timeSpanInDays)
     {
         await using var context = await dbContextFactory.CreateDbContextAsync();
         var logs = await context.ConditionsLogs
             .Where(log => log.PlantId == plantId && log.TimeStamp >= DateTime.UtcNow.AddDays(-timeSpanInDays))
             .ToListAsync();
+        
+        if (logs.Count == 0)
+        {
+           logs = await context.ConditionsLogs
+                .Where(log => log.PlantId == plantId)
+                .OrderByDescending(log => log.TimeStamp)
+                .Take(7)
+                .ToListAsync();
+        }
 
         var groupedLogs = logs
             .GroupBy(log => new DateTime(log.TimeStamp.Year, log.TimeStamp.Month, timeSpanInDays == 365 ? 1 : log.TimeStamp.Day))
