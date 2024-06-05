@@ -18,7 +18,7 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - run: cd api && dotnet publish --prod -c Release -o publish
+      - run: cd api && dotnet publish -c Release -o publish
       - uses: AkhileshNS/heroku-deploy@v3.13.15
         with:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
