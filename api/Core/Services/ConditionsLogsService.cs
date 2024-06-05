@@ -52,14 +52,20 @@ public class ConditionsLogsService (WebSocketConnectionService webSocketConnecti
             Plants = allPlants
         });
         
-        if (newMood != recentMood)
+        var moodDto = new MoodDto
+        {
+            Mood = newMood
+        };
+        await mqttPublisherService.PublishAsync(moodDto, createConditionsLogDto.DeviceId.ToString());
+        
+        /*if (newMood != recentMood)
         {
             var moodDto = new MoodDto
             {
                 Mood = newMood
             };
             await mqttPublisherService.PublishAsync(moodDto, createConditionsLogDto.DeviceId);
-        }
+        }*/
     }
     
     // TODO: make this more sensitive

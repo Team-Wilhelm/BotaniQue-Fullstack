@@ -3,6 +3,7 @@ using api.Core.Services.External.BackgroundRemoval;
 using api.Core.Services.External.BlobStorage;
 using api.Events.Auth.Client;
 using Infrastructure.Repositories;
+using MQTTnet.Client;
 
 namespace api.Extensions;
 
@@ -17,6 +18,11 @@ public static class AddServicesAndRepositoriesExtension
         services.AddSingleton<ConditionsLogsRepository>();
         services.AddSingleton<CollectionsRepository>();
         
+        // Mqtt
+        services.AddSingleton<MqttClientService>();
+        services.AddSingleton<MqttSubscriberService>();
+        services.AddSingleton<MqttPublisherService>();
+        
         // Services
         services.AddSingleton<WebSocketConnectionService>();
         services.AddSingleton<JwtService>();
@@ -25,8 +31,6 @@ public static class AddServicesAndRepositoriesExtension
         services.AddSingleton<CollectionsService>();
         services.AddSingleton<ConditionsLogsService>();
         services.AddSingleton<RequirementService>();
-        services.AddSingleton<MqttSubscriberService>();
-        services.AddSingleton<MqttPublisherService>();
         services.AddSingleton<StatsService>();
         
         // Helpers

@@ -162,7 +162,7 @@ public class DbInitializer(IServiceProvider serviceProvider)
             await conditionsLogService.CreateConditionsLogAsync(
                 new CreateConditionsLogDto
                 {
-                    DeviceId = _plants["Aloe Vera"].DeviceId!,
+                    DeviceId = long.Parse(_plants["Aloe Vera"].DeviceId!),
                     SoilMoisturePercentage = GetValueNearOrInIdealRange(aloeVeraRequirements.SoilMoistureLevel),
                     Light = GetValueNearOrInIdealRange(aloeVeraRequirements.LightLevel),
                     Temperature = GetRandomTemperature(),
@@ -172,7 +172,7 @@ public class DbInitializer(IServiceProvider serviceProvider)
             await conditionsLogService.CreateConditionsLogAsync(
                 new CreateConditionsLogDto
                 {
-                    DeviceId = _plants["Prickly Pear"].DeviceId!,
+                    DeviceId = long.Parse(_plants["Prickly Pear"].DeviceId!),
                     SoilMoisturePercentage = GetValueNearOrInIdealRange(pricklyPearRequirements.SoilMoistureLevel),
                     Light = GetValueNearOrInIdealRange(pricklyPearRequirements.LightLevel),
                     Temperature = GetRandomTemperature(),
@@ -197,7 +197,7 @@ public class DbInitializer(IServiceProvider serviceProvider)
     
             new CreateConditionsLogDto
             {
-                DeviceId = dyingPlant.DeviceId!,
+                DeviceId = long.Parse(dyingPlant.DeviceId!),
                 SoilMoisturePercentage = GetValueOutsideOfIdealRange(dyingPlant.Requirements!.SoilMoistureLevel),
                 Light = GetValueOutsideOfIdealRange(dyingPlant.Requirements!.LightLevel),
                 Temperature = dyingPlant.Requirements!.TemperatureLevel - 10,
