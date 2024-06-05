@@ -54,5 +54,7 @@ public class MqttSubscriberService
                 f => { f.WithTopic(_options.Value.SubscribeTopic); }).Build();
 
         await mqttClient.SubscribeAsync(mqttSubscribeOptions, CancellationToken.None);
+
+        Console.ReadLine();
     }
 }

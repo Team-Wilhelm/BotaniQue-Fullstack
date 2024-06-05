@@ -82,6 +82,7 @@ public static class Startup
         var services = builder.FindAndInjectClientEventHandlers(Assembly.GetExecutingAssembly());
         
         var app = builder.Build();
+        await app.Services.GetRequiredService<MqttSubscriberService>().SubscribeAsync();
 
         // be careful with using --db-init on production, it will delete all data
         if (args.Contains("--db-init"))
